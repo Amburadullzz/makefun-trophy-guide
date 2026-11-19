@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Platinum Coast — a GTA VI trophy ledger</title>
+  <meta name="description" content="An offline guide, roadmap and progress tracker for the 55 PlayStation 5 trophies of Grand Theft Auto VI.">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="src/styles/base.css">
+  <link rel="stylesheet" href="src/styles/layout.css">
+  <link rel="stylesheet" href="src/styles/components.css">
+</head>
+<body>
+  <a class="skip-link" href="#list">Skip to the trophy list</a>
+
+  <header class="masthead">
+    <div class="brand">
+      <svg class="brand__mark" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+        <path d="M4 30 L20 6 L36 30 Z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M12 30 L20 17 L28 30 Z" fill="currentColor" opacity="0.85"/>
+      </svg>
+      <div class="brand__text">
+        <h1 class="brand__name">Platinum Coast</h1>
+        <p class="brand__tag">Grand Theft Auto VI · PlayStation 5 · 55 trophies, offline</p>
+      </div>
+    </div>
+
+    <div class="masthead__score" aria-live="polite">
+      <span class="score__value" id="earned-count">0</span>
+      <span class="score__of">/ 55 earned</span>
+      <span class="score__platinum" id="platinum-state">platinum locked</span>
+    </div>
+
+    <nav class="tabs" aria-label="Sections">
+      <a class="tab" href="#/checklist" data-tab="checklist">Checklist</a>
+      <a class="tab" href="#/roadmap" data-tab="roadmap">Roadmap</a>
+      <a class="tab" href="#/missables" data-tab="missables">Missables</a>
+      <a class="tab" href="#/sources" data-tab="sources">Sources</a>
+    </nav>
+
+    <div class="masthead__save">
+      <button type="button" class="button button--ghost" id="open-export">Export</button>
+      <button type="button" class="button button--ghost" id="open-import">Import</button>
+    </div>
+  </header>
+
+  <div class="progress-rail" role="img" aria-label="Overall progress" id="progress-rail">
+    <div class="progress-rail__fill" id="progress-fill"></div>
+  </div>
+
+  <div class="shell">
+    <aside class="sidebar" aria-label="Filters">
+      <label class="search">
+        <span class="search__label">Find a trophy</span>
+        <input type="search" id="search" placeholder="name, description, guide" autocomplete="off" spellcheck="false">
+      </label>
+
+      <section class="filter-group">
+        <h2 class="filter-group__title">Kind</h2>
+        <div class="chips" id="kind-filters" role="group" aria-label="Filter by kind"></div>
+        <p class="filter-note">No online trophies: all 55 are single-player, so there is no online group.</p>
+      </section>
+
+      <section class="filter-group">
+        <h2 class="filter-group__title">Grade</h2>
+        <div class="chips" id="grade-filters" role="group" aria-label="Filter by grade"></div>
+      </section>
+
+      <section class="filter-group">
+        <h2 class="filter-group__title">Options</h2>
+        <label class="switch">
+          <input type="checkbox" id="only-missable">
+          <span class="switch__track" aria-hidden="true"></span>
+          <span class="switch__text">Missable only <em id="missable-total"></em></span>
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="only-unearned">
+          <span class="switch__track" aria-hidden="true"></span>
+          <span class="switch__text">Still to earn</span>
+        </label>
+        <label class="switch">
+          <input type="checkbox" id="spoiler-mode">
+          <span class="switch__track" aria-hidden="true"></span>
+          <span class="switch__text">Spoiler mode <em>story names hidden</em></span>
+        </label>
+      </section>
+
+      <section class="filter-group filter-group--stats">
+        <h2 class="filter-group__title">By grade</h2>
+        <ul class="tally" id="grade-tally"></ul>
+      </section>
+
+      <p class="sidebar__foot">Progress is saved in this browser only. Export a file to move it to another machine.</p>
+    </aside>
+
+    <main class="main" id="list" tabindex="-1">
+      <div class="view" id="view-checklist">
+        <div class="next-up" id="next-up"></div>
+        <div class="list-head">
+          <h2 class="list-head__title" id="list-title">All trophies</h2>
+          <p class="list-head__count" id="list-count"></p>
+        </div>
+        <ol class="trophy-list" id="trophy-list"></ol>
+        <p class="empty" id="empty-state" hidden>No trophy matches these filters.</p>
+      </div>
+
+      <div class="view" id="view-roadmap" hidden></div>
+      <div class="view" id="view-missables" hidden></div>
+      <div class="view" id="view-sources" hidden></div>
+    </main>
+
+    <aside class="drawer" id="drawer" hidden aria-label="Trophy guide"></aside>
+  </div>
+
+  <div class="modal" id="save-modal" hidden role="dialog" aria-modal="true" aria-labelledby="save-modal-title">
+    <div class="modal__panel">
+      <header class="modal__head">
+        <h2 class="modal__title" id="save-modal-title">Save file</h2>
+        <button type="button" class="button button--icon" id="close-modal" aria-label="Close">×</button>
+      </header>
+      <p class="modal__intro" id="save-modal-intro"></p>
+      <textarea class="modal__text" id="save-text" spellcheck="false" aria-label="Progress file"></textarea>
+      <div class="modal__actions">
+        <button type="button" class="button button--primary" id="save-action">Import this file</button>
+        <a class="button button--ghost" id="download-link" download="platinum-coast-progress.json" hidden>Download as a file</a>
+        <button type="button" class="button button--ghost" id="reset-progress">Clear all progress</button>
+      </div>
+      <p class="modal__note" id="save-note" role="status"></p>
+    </div>
+  </div>
+
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>

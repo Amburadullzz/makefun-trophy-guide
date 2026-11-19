@@ -1,0 +1,80 @@
+/* Design tokens and the page's base type. One look, no external assets: the palette is the guide's own. */
+:root {
+  --ink: #14101e;
+  --ink-2: #191325;
+  --panel: #1f1830;
+  --panel-2: #261d3a;
+  --panel-3: #2e2345;
+  --line: #372b50;
+  --line-soft: #2a2140;
+  --text: #f5effb;
+  --muted: #a99cc4;
+  --muted-2: #8577a3;
+  --accent: #ff6f5e;
+  --accent-soft: #ffb0a4;
+  --mint: #4fd6ae;
+  --gold: #f4c95d;
+  --silver: #c6cfdb;
+  --bronze: #cf8b52;
+  --platinum: #b6e4f2;
+  --danger: #ff8f7d;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, p, ol, ul, figure { margin: 0; }
+ol, ul { padding: 0; list-style: none; }
+button, input, textarea { font: inherit; color: inherit; }
+a { color: var(--accent-soft); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+::selection { background: var(--accent); color: #1a1220; }
+
+:focus-visible {
+  outline: 2px solid var(--mint);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: 8px;
+  z-index: 40;
+  padding: 8px 14px;
+  background: var(--accent);
+  color: #1a1220;
+  border-radius: 8px;
+  font-weight: 600;
+}
+.skip-link:focus { left: 12px; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* The hidden attribute has to beat the layout display rules below it. */
+[hidden] { display: none !important; }
