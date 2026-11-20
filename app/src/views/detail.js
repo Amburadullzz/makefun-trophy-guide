@@ -66,10 +66,10 @@ export function renderDetail(container, ctx) {
       el('span', {}, KIND_LABELS[trophy.kind] ?? trophy.kind),
       stage ? el('span', {}, `· ${stage.title}`) : null,
     ]),
-    el('h2', { class: 'guide-title' }, displayName(trophy, state)),
+    el('h2', { class: 'guide-title' }, hidden ? displayName(trophy, state) : trophy.name),
     el('div', { class: 'guide-official' }, [
       el('span', {}, 'PlayStation description'),
-      displayDescription(trophy, state),
+      hidden ? displayDescription(trophy, state) : trophy.description,
     ]),
   ]);
 
