@@ -1,68 +1,38 @@
-// Loads app/data/trophies.json once and hands the rest of the app an indexed view of it:
-// trophies by id, by kind, by roadmap stage, plus the labels the filters and rows use.
+// The trophy file: one fetch of app/data/trophies.json, then lookups and counts
+// that the views share. Nothing here reaches outside app/.
 
-export const KIND_LABELS = {
-  story: 'Story',
-  missions: 'Strands',
-  collectibles: 'Collectibles',
-  activities: 'Activities',
-  jobs: 'Jobs',
-  combat: 'Combat',
-  world: 'One-offs',
-  completion: 'Completion',
-  platinum: 'Platinum',
-};
+const DATA_PATH = 'data/trophies.json';
 
-/** Kinds in the order the filter rail shows them. `online` is present but empty: the list has none. */
-export const KIND_ORDER = ['story', 'missions', 'collectibles', 'activities', 'jobs', 'combat', 'world', 'completion', 'platinum'];
-
-export const GRADE_ORDER = ['platinum', 'gold', 'silver', 'bronze'];
-
+/** Load and index app/data/trophies.json. */
 export async function loadTrophyData() {
-  const response = await fetch('data/trophies.json', { cache: 'no-store' });
+  const response = await fetch(DATA_PATH, { cache: 'no-store' });
   if (!response.ok) throw new Error(`trophies.json: HTTP ${response.status}`);
   const raw = await response.json();
-  const trophies = raw.trophies ?? raw;
+  const trophies = Array.isArray(raw) ? raw : raw.trophies;
+  if (!Array.isArray(trophies) || trophies.length === 0) {
+    throw new Error('trophies.json: no "trophies" array');
+  }
   const byId = new Map(trophies.map((trophy) => [trophy.id, trophy]));
-
-  const stages = (raw.stages ?? []).map((stage) => ({
-    ...stage,
-    trophies: stage.trophies.map((id) => byId.get(id)).filter(Boolean),
-  }));
-
-  const kinds = KIND_ORDER.filter((kind) => trophies.some((trophy) => trophy.kind === kind));
-
+  const byStage = new Map();
+  for (const trophy of trophies) {
+    if (!byStage.has(trophy.stage)) byStage.set(trophy.stage, []);
+    byStage.get(trophy.stage).push(trophy);
+  }
   return {
-    game: raw.game,
-    platform: raw.platform,
-    counts: raw.counts,
-    sources: raw.sources ?? [],
+    meta: Array.isArray(raw) ? {} : raw,
     trophies,
     byId,
-    stages,
-    kinds,
-    totals: {
-      all: trophies.length,
-      missable: trophies.filter((trophy) => trophy.missable).length,
-      spoiler: trophies.filter((trophy) => trophy.spoiler).length,
-      online: trophies.filter((trophy) => trophy.kind === 'online').length,
-      byGrade: Object.fromEntries(
-        GRADE_ORDER.map((grade) => [grade, trophies.filter((trophy) => trophy.grade === grade).length]),
-      ),
-    },
+    byStage,
+    stages: (Array.isArray(raw) ? [] : raw.stages) ?? [],
+    counts: countGrades(trophies),
   };
 }
 
-/** The order a player should meet them in: roadmap stage first, then the official list order. */
-export function roadmapOrder(data) {
-  return [...data.trophies].sort((a, b) => a.stage - b.stage || a.id - b.id);
-}
-
-/** What to show for a trophy whose name the spoiler setting hides. */
-export function displayName(trophy, revealed) {
-  return revealed ? trophy.name : 'Hidden story trophy';
-}
-
-export function displayDescription(trophy, revealed) {
-  return revealed ? trophy.description : 'A story trophy. Its name and description stay hidden until it is earned.';
+/** Grade tally, checked against the official 1 / 2 / 6 / 46 split. */
+export function countGrades(trophies) {
+  const counts = { platinum: 0, gold: 0, silver: 0, bronze: 0 };
+  for (const trophy of trophies) {
+    if (counts[trophy.grade] !== undefined) counts[trophy.grade] += 1;
+  }
+  return counts;
 }

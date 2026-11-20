@@ -1,80 +1,100 @@
-/* Design tokens and the page's base type. One look, no external assets: the palette is the guide's own. */
+/* Design tokens, reset and base type. One palette for the whole app: a night
+   drive through Vice City — deep navy panels, pink and mint accents, no artwork. */
 :root {
-  --ink: #14101e;
-  --ink-2: #191325;
-  --panel: #1f1830;
-  --panel-2: #261d3a;
-  --panel-3: #2e2345;
-  --line: #372b50;
-  --line-soft: #2a2140;
-  --text: #f5effb;
-  --muted: #a99cc4;
-  --muted-2: #8577a3;
-  --accent: #ff6f5e;
-  --accent-soft: #ffb0a4;
-  --mint: #4fd6ae;
-  --gold: #f4c95d;
-  --silver: #c6cfdb;
-  --bronze: #cf8b52;
-  --platinum: #b6e4f2;
-  --danger: #ff8f7d;
-  --radius: 10px;
-  --radius-lg: 16px;
-  --shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
-  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --ink: #080c18;
+  --ink-2: #0c1222;
+  --panel: #121a2d;
+  --panel-2: #182140;
+  --panel-3: #1f2a4d;
+  --line: #263252;
+  --line-soft: #1c2745;
+  --text: #e9edf9;
+  --muted: #9ba8c8;
+  --dim: #6d7a9c;
+  --pink: #ff4d8d;
+  --pink-soft: #ff9bbd;
+  --mint: #3ee0c4;
+  --mint-soft: #a5f2e4;
+  --amber: #ffb347;
+  --gold: #f2c14e;
+  --silver: #c3cee3;
+  --bronze: #cf8a5c;
+  --platinum: #7fe3f0;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 18px 40px -24px rgba(0, 0, 0, 0.9);
+  --font: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --mono: "SFMono-Regular", "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
 }
 
-*,
-*::before,
-*::after { box-sizing: border-box; }
+* { box-sizing: border-box; }
 
-html, body { height: 100%; }
+html, body {
+  height: 100%;
+  margin: 0;
+}
 
 body {
-  margin: 0;
-  background: var(--ink);
+  background:
+    radial-gradient(1100px 620px at 78% -12%, rgba(255, 77, 141, 0.16), transparent 62%),
+    radial-gradient(900px 560px at 4% 108%, rgba(62, 224, 196, 0.12), transparent 60%),
+    var(--ink);
   color: var(--text);
   font-family: var(--font);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, p, ol, ul, figure { margin: 0; }
-ol, ul { padding: 0; list-style: none; }
-button, input, textarea { font: inherit; color: inherit; }
-a { color: var(--accent-soft); text-decoration: none; }
-a:hover { text-decoration: underline; }
+h1, h2, h3, h4 {
+  margin: 0;
+  font-weight: 650;
+  letter-spacing: -0.012em;
+}
 
-::selection { background: var(--accent); color: #1a1220; }
+p { margin: 0 0 0.7em; }
+p:last-child { margin-bottom: 0; }
+
+a {
+  color: var(--mint);
+  text-decoration-color: rgba(62, 224, 196, 0.45);
+  text-underline-offset: 2px;
+}
+a:hover { color: var(--mint-soft); }
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
 
 :focus-visible {
   outline: 2px solid var(--mint);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
-.skip-link {
-  position: absolute;
-  left: -999px;
-  top: 8px;
-  z-index: 40;
-  padding: 8px 14px;
-  background: var(--accent);
-  color: #1a1220;
-  border-radius: 8px;
-  font-weight: 600;
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 99px;
+  border: 2px solid var(--ink-2);
 }
-.skip-link:focus { left: 12px; }
+::-webkit-scrollbar-thumb:hover { background: var(--panel-3); }
 
-.visually-hidden {
+.sr-only {
   position: absolute;
   width: 1px; height: 1px;
-  margin: -1px; padding: 0;
+  padding: 0; margin: -1px;
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+  border: 0;
 }
 
-/* The hidden attribute has to beat the layout display rules below it. */
-[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}

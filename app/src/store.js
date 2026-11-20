@@ -1,131 +1,132 @@
-// Progress that survives a reload: the earned set and the per-trophy counters live in localStorage,
-// and the same state is what the export file carries: one store, one key, one place to look.
+// Progress state: what is earned, which filter is on, whether spoilers are
+// hidden, and which guide is open. Everything that must survive a reload is
+// written to localStorage; export and import move the earned set as a file.
 
-const STORAGE_KEY = 'platinum-coast:progress/v1';
-const FILE_APP = 'platinum-coast';
-const FILE_VERSION = 1;
+export const STORAGE_KEY = 'leonida-ledger/v1';
 
-function emptyState() {
-  return { earned: [], counters: {}, spoiler: false, updatedAt: new Date().toISOString() };
+const DEFAULT_STATE = {
+  earned: new Set(),
+  spoiler: true,
+  filter: 'all',
+  query: '',
+  view: 'tracker',
+  openId: null,
+};
+
+/** Read the saved snapshot, tolerating a missing or corrupt entry. */
+function readSavedState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const saved = JSON.parse(raw);
+    return saved && typeof saved === 'object' ? saved : null;
+  } catch {
+    return null;
+  }
 }
 
-/** Accepts anything that was in storage or a file, and returns the shape the app expects. */
-function normalize(raw) {
-  const state = emptyState();
-  if (!raw || typeof raw !== 'object') return state;
-  const earned = Array.isArray(raw) ? raw : raw.earned;
-  if (Array.isArray(earned)) {
-    state.earned = [...new Set(earned.map(Number).filter((id) => Number.isInteger(id) && id > 0))];
+/** Persist the durable half of the state; a full quota must not break the app. */
+function writeSavedState(state) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      earned: [...state.earned].sort((a, b) => a - b),
+      spoiler: state.spoiler,
+      filter: state.filter,
+      view: state.view,
+    }));
+  } catch {
+    /* storage unavailable: the session still works, it just will not persist */
   }
-  if (raw.counters && typeof raw.counters === 'object') {
-    for (const [id, value] of Object.entries(raw.counters)) {
-      const count = Math.max(0, Math.floor(Number(value)));
-      if (Number.isInteger(Number(id)) && Number.isFinite(count) && count > 0) state.counters[id] = count;
-    }
-  }
-  if (typeof raw.spoiler === 'boolean') state.spoiler = raw.spoiler;
-  return state;
 }
 
-export function createProgressStore(knownIds) {
-  let state = readFromStorage();
+/** A one-file backup of the earned set, with a timestamp for the filename. */
+export function buildExport(state, trophyCount) {
+  const earned = [...state.earned].sort((a, b) => a - b);
+  const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+  return {
+    fileName: `leonida-ledger-progress-${stamp}.json`,
+    text: JSON.stringify({
+      app: 'leonida-ledger',
+      game: 'Grand Theft Auto VI',
+      platform: 'PlayStation 5',
+      exportedAt: new Date().toISOString(),
+      earnedCount: earned.length,
+      total: trophyCount,
+      earned,
+    }, null, 2),
+  };
+}
 
-  function readFromStorage() {
-    try {
-      return normalize(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null'));
-    } catch {
-      return emptyState();
+/** Parse an imported file: accept the export shape or a bare id array. */
+export function parseImport(text) {
+  const parsed = JSON.parse(text);
+  const list = Array.isArray(parsed) ? parsed : parsed?.earned;
+  if (!Array.isArray(list)) throw new Error('no "earned" list in this file');
+  const ids = [...new Set(list.map(Number).filter((id) => Number.isInteger(id) && id > 0))];
+  return ids;
+}
+
+/** Create the store and its subscriptions. */
+export function createStore(validIds) {
+  const saved = readSavedState();
+  const state = { ...DEFAULT_STATE, earned: new Set() };
+
+  if (saved) {
+    if (Array.isArray(saved.earned)) {
+      for (const id of saved.earned) {
+        if (validIds.has(Number(id))) state.earned.add(Number(id));
+      }
     }
+    if (typeof saved.spoiler === 'boolean') state.spoiler = saved.spoiler;
+    if (typeof saved.filter === 'string') state.filter = saved.filter;
+    if (['tracker', 'roadmap', 'missables'].includes(saved.view)) state.view = saved.view;
   }
 
-  function commit() {
-    state.updatedAt = new Date().toISOString();
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch {
-      /* A browser that refuses storage still works for this session; the file export is the fallback. */
-    }
-  }
+  const listeners = new Set();
+  const notify = () => {
+    writeSavedState(state);
+    for (const listener of listeners) listener(state);
+  };
 
   return {
-    earnedIds() {
-      return [...state.earned].sort((a, b) => a - b);
+    getState: () => state,
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
     },
-
-    earnedCount() {
-      return state.earned.length;
+    toggleEarned(id) {
+      if (state.earned.has(id)) state.earned.delete(id);
+      else state.earned.add(id);
+      notify();
     },
-
-    isEarned(id) {
-      return state.earned.includes(id);
+    setEarned(ids) {
+      state.earned = new Set(ids.filter((id) => validIds.has(id)));
+      notify();
     },
-
-    setEarned(id, earned) {
-      const has = state.earned.includes(id);
-      if (earned && !has) state.earned.push(id);
-      if (!earned && has) state.earned = state.earned.filter((other) => other !== id);
-      commit();
+    clearEarned() {
+      state.earned = new Set();
+      notify();
     },
-
-    counterFor(id) {
-      return state.counters[id] ?? 0;
+    setSpoiler(hidden) {
+      state.spoiler = Boolean(hidden);
+      notify();
     },
-
-    setCounter(id, value) {
-      const count = Math.max(0, Math.floor(Number(value) || 0));
-      if (count === 0) delete state.counters[id];
-      else state.counters[id] = count;
-      commit();
+    setFilter(filter) {
+      state.filter = filter;
+      notify();
     },
-
-    spoilerOn() {
-      return state.spoiler;
+    setQuery(query) {
+      state.query = query;
+      notify();
     },
-
-    setSpoiler(on) {
-      state.spoiler = Boolean(on);
-      commit();
+    setView(view) {
+      state.view = view;
+      notify();
     },
-
-    /** The text the Export button puts in the modal and in the downloaded file. */
-    exportText() {
-      const file = {
-        app: FILE_APP,
-        version: FILE_VERSION,
-        exportedAt: new Date().toISOString(),
-        earned: this.earnedIds(),
-        counters: state.counters,
-      };
-      return JSON.stringify(file, null, 2);
+    openTrophy(id) {
+      state.openId = id;
+      notify();
     },
-
-    /** Reads an exported file back. Returns how many trophies it restored, or an error to show. */
-    importText(text) {
-      let parsed;
-      try {
-        parsed = JSON.parse(text);
-      } catch {
-        return { ok: false, error: 'That is not valid JSON. Paste the file the app exported.' };
-      }
-      const earned = Array.isArray(parsed) ? parsed : parsed?.earned;
-      if (!Array.isArray(earned)) {
-        return { ok: false, error: 'No "earned" list in that file. Use a file this app exported.' };
-      }
-      const next = normalize(parsed);
-      const unknown = next.earned.filter((id) => !knownIds.has(id));
-      next.earned = next.earned.filter((id) => knownIds.has(id));
-      state = { ...next, updatedAt: new Date().toISOString() };
-      commit();
-      return {
-        ok: true,
-        count: next.earned.length,
-        ignored: unknown.length,
-      };
-    },
-
-    reset() {
-      state = emptyState();
-      commit();
-    },
+    isEarned: (id) => state.earned.has(id),
   };
 }

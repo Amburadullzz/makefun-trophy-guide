@@ -1,98 +1,96 @@
-// The checklist: one row per trophy in official order, with its grade, kind, missable flag and PSN
-// counter, plus the "next up" line that always names the next thing in roadmap order.
+// The tracker list: one row per visible trophy with its checkbox, official
+// name and description, grade and flags. Clicking the text opens the guide.
 
-import { el, clear, gradeMark, kindLabel } from '../ui/dom.js';
-import { applyFilters, isRevealed } from '../filters.js';
-import { displayName, displayDescription } from '../data.js';
-import { nextUp, stageOf } from '../roadmap.js';
+import { el, mount, checkIcon } from '../ui/dom.js';
+import { FILTERS, KIND_LABELS } from '../filters.js';
+import { displayName, displayDescription, isHidden } from '../spoiler.js';
 
-function targetLabel(trophy, store) {
-  if (!trophy.target) return null;
-  const count = store.counterFor(trophy.id);
-  return el('span', { class: 'target' }, el('b', {}, String(count)), `/${trophy.target.count} `, trophy.target.unit);
+function gradeBadge(grade) {
+  return el('span', { class: `grade grade-${grade}` }, grade);
 }
 
-function row(trophy, { store, selectedId, onSelect, onToggle }) {
-  const revealed = isRevealed(trophy, store);
-  const earned = store.isEarned(trophy.id);
+function flagTags(trophy) {
+  const tags = [];
+  if (trophy.missable) tags.push(el('span', { class: 'tag tag-missable' }, 'Missable'));
+  if (trophy.status === 'unsolved') tags.push(el('span', { class: 'tag tag-unsolved' }, 'No method yet'));
+  return tags;
+}
 
-  const checkbox = el('input', {
-    class: 'trophy__check',
-    type: 'checkbox',
-    'data-id': trophy.id,
-    'aria-label': `Mark ${revealed ? trophy.name : 'this story trophy'} as earned`,
-  });
-  checkbox.checked = earned;
-  checkbox.addEventListener('click', (event) => event.stopPropagation());
-  checkbox.addEventListener('change', () => onToggle(trophy.id, checkbox.checked));
+function trophyRow(trophy, ctx) {
+  const { store, state } = ctx;
+  const earned = state.earned.has(trophy.id);
+  const hidden = isHidden(trophy, state);
 
-  const item = el(
-    'li',
-    {
-      class: `trophy${earned ? ' is-earned' : ''}${selectedId === trophy.id ? ' is-open' : ''}`,
-      'data-id': trophy.id,
-      tabindex: '0',
-      role: 'button',
-      'aria-pressed': selectedId === trophy.id ? 'true' : 'false',
+  const check = el('button', {
+    class: 'check',
+    type: 'button',
+    role: 'checkbox',
+    'aria-checked': String(earned),
+    'aria-label': `${earned ? 'Uncheck' : 'Check'} ${trophy.name}`,
+    onclick: (event) => {
+      event.stopPropagation();
+      store.toggleEarned(trophy.id);
     },
-    checkbox,
-    gradeMark(trophy.grade),
-    el(
-      'div',
-      { class: 'trophy__body' },
-      el('div', { class: 'trophy__name' }, displayName(trophy, revealed)),
-      el('div', { class: 'trophy__desc' }, displayDescription(trophy, revealed)),
-    ),
-    el(
-      'div',
-      { class: 'trophy__meta' },
-      !revealed ? el('span', { class: 'lock' }, 'hidden') : null,
-      kindLabel(trophy.kind, { story: 'story', missions: 'strand', collectibles: 'collect', activities: 'activity', jobs: 'job', combat: 'combat', world: 'one-off', completion: '100%', platinum: 'platinum' }),
-      trophy.missable ? el('span', { class: 'flag' }, 'missable') : null,
-      targetLabel(trophy, store),
-    ),
-  );
+  }, [checkIcon()]);
 
-  item.addEventListener('click', () => onSelect(trophy.id));
-  item.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      onSelect(trophy.id);
-    }
-  });
-  return item;
+  const openButton = el('button', {
+    class: 'row-main',
+    type: 'button',
+    'aria-label': `Open the guide for ${hidden ? 'this hidden story trophy' : trophy.name}`,
+    onclick: () => store.openTrophy(trophy.id),
+  }, [
+    el('span', {
+      class: 'row-name',
+      title: trophy.name.includes('*') ? 'The asterisks are PlayStation\u2019s own censoring of the official name.' : null,
+    }, [
+      hidden ? el('span', {}, displayName(trophy, state)) : trophy.name,
+      hidden ? el('span', { class: 'tag tag-window' }, 'Hidden') : null,
+    ]),
+    el('span', { class: 'row-desc' }, displayDescription(trophy, state)),
+  ]);
+
+  return el('div', {
+    class: ['row', earned ? 'is-earned' : '', state.openId === trophy.id ? 'is-open' : ''].filter(Boolean).join(' '),
+    dataset: { id: String(trophy.id) },
+  }, [
+    check,
+    openButton,
+    el('div', { class: 'row-meta' }, [
+      trophy.kind === 'platinum' ? null : el('span', { class: 'tag tag-kind' }, KIND_LABELS[trophy.kind] ?? trophy.kind),
+      ...flagTags(trophy),
+      gradeBadge(trophy.grade),
+    ]),
+  ]);
 }
 
-export function renderChecklist(refs, context) {
-  const { data, store, filters, selectedId, onSelect, onToggle } = context;
-  const visible = applyFilters(data.trophies, filters, store);
+/** Draw the whole list for the current filter and search. */
+export function renderChecklist(container, ctx) {
+  const { data, state, visible } = ctx;
+  const filterLabel = FILTERS.find((f) => f.id === state.filter)?.label ?? 'All trophies';
+  const earnedHere = visible.filter((trophy) => state.earned.has(trophy.id)).length;
 
-  clear(refs.list);
-  for (const trophy of visible) refs.list.append(row(trophy, { store, selectedId, onSelect, onToggle }));
+  const head = el('div', { class: 'list-head' }, [
+    el('div', {}, [
+      el('h1', { class: 'list-title' }, filterLabel),
+      el('p', { class: 'list-sub' },
+        `${visible.length} shown · ${earnedHere} earned · ${data.trophies.length} in the official list`),
+    ]),
+    el('div', { class: 'list-sub' },
+      state.spoiler ? 'Spoilers on: story names hidden until earned' : 'Spoilers off: all names shown'),
+  ]);
 
-  refs.title.textContent = filters.query || filters.kind !== 'all' || filters.grade !== 'all' || filters.missable || filters.unearned
-    ? 'Filtered trophies'
-    : 'All trophies';
-  refs.count.textContent = `${visible.length} shown · ${store.earnedCount()} of ${data.totals.all} earned`;
-  refs.empty.hidden = visible.length > 0;
-  renderNextUp(refs.nextUp, data, store, onSelect, filters);
-}
-
-/** The one-line planner above the list. Hidden while a filter is on, where it would contradict the view. */
-function renderNextUp(node, data, store, onSelect, filters) {
-  clear(node);
-  const filtered = filters.kind !== 'all' || filters.grade !== 'all' || filters.missable || filters.unearned || filters.query;
-  const next = nextUp(data, store);
-  if (filtered || !next) {
-    node.hidden = true;
+  if (visible.length === 0) {
+    mount(container, [
+      head,
+      el('div', { class: 'empty' }, [
+        el('strong', {}, state.filter === 'online' ? 'No online trophies' : 'Nothing matches'),
+        state.filter === 'online'
+          ? 'GTA VI shipped without an online mode, so the official list has no online trophies — nothing to tick here.'
+          : 'Try another kind filter, or clear the search box.',
+      ]),
+    ]);
     return;
   }
-  node.hidden = false;
-  const stage = stageOf(data, next);
-  node.append(
-    el('span', { class: 'next-up__label' }, 'Next up'),
-    el('span', { class: 'next-up__name' }, next.name),
-    el('span', { class: 'next-up__meta' }, `${stage ? stage.title : 'Free roam'} · ${next.grade}`),
-    el('a', { class: 'next-up__link', href: '#/checklist', onclick: (event) => { event.preventDefault(); onSelect(next.id); } }, 'Open the guide →'),
-  );
+
+  mount(container, [head, el('div', { class: 'rows' }, visible.map((trophy) => trophyRow(trophy, ctx)))]);
 }

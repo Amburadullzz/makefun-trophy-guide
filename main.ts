@@ -1,56 +1,36 @@
-// Hands the entry in: copies the static guide (app/) and the screenshots beside this file into the output
-// directory, then writes dossier.json from them with the kit's vendored buildDossier. Node 22, standard
-// library only, no build step: app/ is already the finished site.
+// A working gta6-trophy-guide-01 entry (Node 22, standard library only): the guide is this directory's app/ folder,
+// plain static files a browser opens at app/index.html (ES modules, CSS, no build step), offline: it loads nothing
+// over the network, and its trophy list and guides are app/data/trophies.json. The program hands it in: it copies app/
+// and screenshots/ from beside this file to /output and writes /output/dossier.json, the summary the judge reads (your
+// screenshots, the first load's files and bytes, and your source), with the vendored make.fun library. Leave
+// vendor/makefun-frontend.ts as it is: the scorer requires dossier.json to be byte for byte what its own copy writes.
 //
+// Only the plumbing, not a winner: a plain checklist of the 55 trophies with a one-line hint each. Write a real guide
+// for every trophy in your own words, a roadmap to the platinum, filters and a spoiler setting in app/, put 3 or 4 PNG
+// or JPEG screenshots of it in screenshots/ (the first by name is the cover; shots.json says which views this
+// starter's were taken of), and run it.
+//
+// Serve it locally with `node serve.ts`, then open http://localhost:8080.
+// Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
 //   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
-//
-// MAKEFUN_OUTPUT_DIR stands in for the grader's /output. The limits passed to buildDossier are the
-// competition's own (163,840 bytes of dossier text, 4 screenshots of at most 256 KiB, app/ at most 993
-// files and 48 MiB); a run that would break one fails here rather than at the gate.
 
 import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-frontend.ts';
 
-const repository = fileURLToPath(new URL('.', import.meta.url));
+const here = fileURLToPath(new URL('.', import.meta.url));
+const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
-/** The output directory: the grader's /output, or MAKEFUN_OUTPUT_DIR when run by hand. */
-function outputDirectory(): string {
-  return process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
-}
-
-/** app/ is the whole guide: plain files, served as they are. */
-function copyGuide(out: string): void {
-  cpSync(join(repository, 'app'), join(out, 'app'), { recursive: true });
-}
-
-/** The screenshots the judge sees first: the cover is the first by name. */
-function copyScreenshots(out: string): void {
-  const from = join(repository, 'screenshots');
-  if (!existsSync(from)) return;
-  cpSync(from, join(out, 'screenshots'), { recursive: true });
-}
-
-/** dossier.json: the screenshots sheet plus the outline of the guide's source, as the kit computes it. */
-function writeDossier(out: string): number {
-  const dossier = buildDossier(out, {
-    text_max_bytes: 163840,
-    screenshots: { max: 4, max_bytes: 262144 },
-    app_max_files: 993,
-    app_max_bytes: 50331648,
-  });
-  writeFileSync(join(out, 'dossier.json'), dossier);
-  return dossier.length;
-}
-
-const out = outputDirectory();
 mkdirSync(out, { recursive: true });
+cpSync(join(here, 'app'), join(out, 'app'), { recursive: true });
 mkdirSync(join(out, 'screenshots'), { recursive: true });
-copyGuide(out);
-copyScreenshots(out);
-const bytes = writeDossier(out);
+if (existsSync(join(here, 'screenshots'))) cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
 
-console.log(`entry written to ${out}`);
-console.log(`  app/        copied from ${join(repository, 'app')}`);
-console.log(`  screenshots/ copied, dossier.json ${bytes} bytes`);
+// The scorer's own caps (reference/gate.json): only text_max_bytes shapes the bytes; the others refuse an entry the
+// scorer would refuse (more than 4 screenshots or one over 256 KiB; more than 993 files and directories in app/ or
+// 48 MiB of app files: app/ counts beside /output's own 1000-entry cap, its screenshots/ and dossier.json).
+writeFileSync(
+  join(out, 'dossier.json'),
+  buildDossier(out, { text_max_bytes: 163840, screenshots: { max: 4, max_bytes: 262144 }, app_max_files: 993, app_max_bytes: 50331648 }),
+);

@@ -1,65 +1,59 @@
-// The roadmap page: eight stages in the order the descriptions imply, each with its goal, its warning
-// and its trophies as chips that open the guide.
+// The roadmap view: the seven stages in order, each with the trophies the
+// official descriptions put in it, and the sources the order rests on.
 
-import { el, clear, gradeMark } from '../ui/dom.js';
-import { stageStats, overallStats } from '../roadmap.js';
-import { isRevealed } from '../filters.js';
-import { displayName } from '../data.js';
+import { el, mount } from '../ui/dom.js';
+import { buildRoadmap } from '../roadmap.js';
 
-export function renderRoadmap(node, { data, store, onSelect }) {
-  clear(node);
-  const overall = overallStats(data, store);
-  const missables = data.trophies.filter((trophy) => trophy.missable).length;
+function stageCard(stage, ctx) {
+  const { store, state } = ctx;
+  const chips = stage.trophies.map((trophy) => {
+    const earned = state.earned.has(trophy.id);
+    const classes = ['stage-chip', earned ? 'is-earned' : '', trophy.missable ? 'is-missable' : ''].filter(Boolean).join(' ');
+    return el('button', {
+      class: classes,
+      type: 'button',
+      title: trophy.description,
+      onclick: () => store.openTrophy(trophy.id),
+    }, trophy.name);
+  });
 
-  node.append(
-    el(
-      'div',
-      { class: 'page-head' },
-      el('h2', { class: 'page-head__title' }, 'Roadmap to the platinum'),
-      el('p', { class: 'page-head__lede' },
-        `Eight stages, built from the official descriptions: chapter gates first, then the ${missables} trophies whose wording ties them to a character's last mission or a single scene, then the free-roam work that never closes. ${overall.earned} of ${overall.total} earned; the point of no return is stage 4.`),
-    ),
-  );
+  return el('article', { class: 'stage-card' }, [
+    el('header', { class: 'stage-head' }, [
+      el('div', { class: 'stage-num' }, String(stage.order)),
+      el('div', {}, [
+        el('h3', { class: 'stage-title' }, stage.title),
+        el('div', { class: 'stage-when' }, stage.when),
+      ]),
+      el('div', { class: 'stage-count' }, `${stage.earned}/${stage.total}`),
+    ]),
+    el('div', { class: 'stage-body' }, [
+      el('p', { class: 'stage-goal' }, stage.goal),
+      el('div', { class: 'stage-chips' }, chips),
+    ]),
+  ]);
+}
 
-  for (const stage of data.stages) {
-    const stats = stageStats(stage, store);
-    const card = el(
-      'article',
-      { class: 'stage' },
-      el(
-        'header',
-        { class: 'stage__head' },
-        el('span', { class: 'stage__num' }, String(stage.id)),
-        el('div', {}, el('h3', { class: 'stage__title' }, stage.title), el('p', { class: 'stage__when' }, stage.when)),
-        el('span', { class: 'stage__count' }, `${stats.earned}/${stats.total} · ${stats.percent}%`),
-      ),
-      el(
-        'div',
-        { class: 'stage__body' },
-        el('p', { class: 'stage__goal' }, stage.goal),
-        el('p', { class: 'stage__note' }, stage.note),
-        el(
-          'div',
-          { class: 'stage__list' },
-          ...stage.trophies.map((trophy) => {
-            const revealed = isRevealed(trophy, store);
-            const item = el(
-              'button',
-              {
-                type: 'button',
-                class: `stage__item${store.isEarned(trophy.id) ? ' is-earned' : ''}`,
-                'data-id': trophy.id,
-                onclick: () => onSelect(trophy.id),
-              },
-              gradeMark(trophy.grade),
-              displayName(trophy, revealed),
-              trophy.missable ? el('span', { class: 'flag' }, 'missable') : null,
-            );
-            return item;
-          }),
-        ),
-      ),
-    );
-    node.append(card);
-  }
+/** Draw the roadmap page. */
+export function renderRoadmap(container, ctx) {
+  const { data, state } = ctx;
+  const stages = buildRoadmap(data, state);
+  const total = stages.reduce((sum, stage) => sum + stage.total, 0);
+  const earned = stages.reduce((sum, stage) => sum + stage.earned, 0);
+
+  const intro = el('div', { class: 'panel' }, [
+    el('h2', {}, 'The order to earn them in'),
+    el('p', {}, `${stages.length} stages, ${total} trophies, ${earned} earned. The order is read off the official descriptions: twelve trophies name a chapter or a mission and unlock on their own, the rest name a count, a character's last job or a place. Chapter and mission counts come from the published mission list; the collectible and activity counts come from the 100% checklist.`),
+    el('p', {}, 'Nothing here is missable except the Chapter 1 meditation in stage 1 — see the Missables tab. Story missions cannot be replayed, so keep a manual save at the start and end of each chapter.'),
+    el('div', { class: 'legend' }, [
+      el('span', { class: 'stage-chip is-earned' }, 'earned'),
+      el('span', { class: 'stage-chip' }, 'still open'),
+      el('span', { class: 'stage-chip is-missable' }, 'missable'),
+      el('span', { class: 'legend-note' }, 'Click any chip to read that trophy\u2019s guide.'),
+    ]),
+  ]);
+
+  mount(container, [
+    intro,
+    el('div', { class: 'roadmap' }, stages.map((stage) => stageCard(stage, ctx))),
+  ]);
 }

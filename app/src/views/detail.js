@@ -1,145 +1,134 @@
-// The guide drawer: the trophy's official text, its guide in the app's own words, the steps, the
-// missable verdict and the sources each fact is cited to.
+// The guide panel: one trophy's official text, this entry's guide, its steps,
+// its missable window and the sources behind every specific claim.
 
-import { el, clear, gradeMark } from '../ui/dom.js';
-import { KIND_LABELS, displayName, displayDescription } from '../data.js';
-import { stageOf } from '../roadmap.js';
+import { el, mount } from '../ui/dom.js';
+import { KIND_LABELS } from '../filters.js';
+import { displayName, displayDescription, isHidden, peek, isPeeked } from '../spoiler.js';
 
-function section(title, ...children) {
-  return el('section', { class: 'section' }, el('h3', { class: 'section__title' }, title), ...children);
-}
-
-/** The URL without its scheme and trailing slash, so a long path wraps in the drawer. */
-function shortUrl(url) {
-  return url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
-}
-
-function sourceCard(source) {
-  const own = !source.url;
-  return el(
-    'div',
-    { class: `source${own ? ' source--own' : ''}` },
-    el('div', { class: 'source__name' }, source.url
-      ? el('a', { href: source.url, target: '_blank', rel: 'noopener noreferrer' }, source.name)
-      : source.name),
+function sourceItem(source) {
+  return el('li', {}, [
+    el('div', { class: 'source-name' }, source.name),
     source.url
-      ? el('div', { class: 'source__url', title: source.url }, shortUrl(source.url))
-      : el('div', { class: 'source__url' }, 'no link: this entry wrote it'),
-    el('div', { class: 'source__covers' }, source.covers),
-  );
+      ? el('a', {
+          class: 'source-url',
+          href: source.url,
+          target: '_blank',
+          rel: 'noreferrer noopener',
+        }, source.url)
+      : el('span', { class: 'source-url' }, 'No public link — print guide'),
+    el('div', { class: 'source-covers' }, source.covers ?? ''),
+  ]);
 }
 
-function counterBlock(trophy, store, onChange) {
-  const value = store.counterFor(trophy.id);
-  const input = el('input', {
-    type: 'number',
-    min: '0',
-    max: String(trophy.target.count),
-    value: String(value),
-    'aria-label': `Progress for ${trophy.name}`,
-  });
-  const fill = el('div', { class: 'counter__fill' });
-  const paint = (count) => {
-    fill.style.width = `${Math.min(100, Math.round((count / trophy.target.count) * 100))}%`;
-  };
-  paint(value);
-  input.addEventListener('change', () => {
-    const count = Math.max(0, Math.min(trophy.target.count, Number(input.value) || 0));
-    input.value = String(count);
-    paint(count);
-    onChange(count);
-  });
-  return el(
-    'div',
-    {},
-    el('div', { class: 'counter' }, input, el('div', { class: 'counter__bar' }, fill), el('span', { class: 'counter__of' }, `/ ${trophy.target.count} ${trophy.target.unit}`)),
-    el('p', { class: 'source__covers', style: 'margin-top:6px' }, 'The target is PlayStation\'s own counter for this trophy, cited below. Filling it marks the trophy earned.'),
-  );
+function missableCallout(trophy) {
+  if (trophy.missable) {
+    return el('div', { class: 'callout callout-danger' }, [
+      el('strong', {}, 'Missable'),
+      trophy.missableReason ?? 'This one can be lost.',
+    ]);
+  }
+  if (trophy.status === 'unsolved') {
+    return el('div', { class: 'callout callout-warn' }, [
+      el('strong', {}, 'No confirmed method yet'),
+      trophy.missableReason ?? 'Published guides had no verified unlock on 19 November 2026, so bank a manual save before you experiment.',
+    ]);
+  }
+  return el('div', { class: 'callout callout-safe' }, [
+    el('strong', {}, 'Not missable'),
+    trophy.missableReason ?? 'It stays available in free roam after the credits.',
+  ]);
 }
 
-export function renderDrawer(node, context) {
-  const { trophy, data, store, revealed, onClose, onToggle, onCounter, onReveal } = context;
-  clear(node);
-  const earned = store.isEarned(trophy.id);
-  const stage = stageOf(data, trophy);
+/** The panel shown before any trophy is picked. */
+function emptyGuide(data) {
+  return el('div', { class: 'guide-empty' }, [
+    el('p', {}, 'Pick a trophy to read its guide, its steps and its sources.'),
+    el('p', {}, `${data.trophies.length} trophies · ${data.counts.platinum} platinum · ${data.counts.gold} gold · ${data.counts.silver} silver · ${data.counts.bronze} bronze`),
+  ]);
+}
 
-  const body = el('div', { class: 'drawer__inner' });
-
-  body.append(
-    el(
-      'div',
-      { class: 'drawer__top' },
-      gradeMark(trophy.grade),
-      el('h2', { class: 'drawer__title', id: 'drawer-title' }, displayName(trophy, revealed)),
-      el('button', { type: 'button', class: 'button button--icon', 'aria-label': 'Close the guide', onclick: onClose }, '×'),
-    ),
-    el('p', { class: 'drawer__desc' }, `“${displayDescription(trophy, revealed)}”`),
-    el(
-      'div',
-      { class: 'drawer__row' },
-      el('span', { class: 'kind' }, KIND_LABELS[trophy.kind] ?? trophy.kind),
-      el('span', { class: 'kind' }, trophy.grade),
-      stage ? el('span', { class: 'kind' }, `stage ${stage.id} · ${stage.title}`) : null,
-      trophy.missable ? el('span', { class: 'flag' }, 'missable') : el('span', { class: 'lock' }, 'not missable'),
-      earned ? el('span', { class: 'kind', style: 'color:#4fd6ae;border-color:#4fd6ae' }, 'earned') : null,
-    ),
-  );
-
-  if (!revealed) {
-    body.append(
-      el(
-        'div',
-        { class: 'section' },
-        el(
-          'div',
-          { class: 'note' },
-          el('b', {}, 'Spoiler mode is on. '),
-          'This is a story trophy, so its name, description and guide stay hidden until it is earned. ',
-          el('button', { type: 'button', class: 'button', style: 'margin-top:8px', onclick: onReveal }, 'Show it anyway'),
-        ),
-      ),
-      el('p', { class: 'source__covers', style: 'margin-top:14px' }, 'Sources are still listed below: nothing here is uncited, whether or not the text is covered.'),
-    );
-  } else {
-    body.append(
-      section('The guide', el('p', { class: 'guide-text' }, trophy.guide)),
-      section('Steps', el('ol', { class: 'steps' }, ...trophy.steps.map((step) => el('li', {}, step)))),
-      section(
-        'Can it be missed?',
-        el(
-          'div',
-          { class: `note ${trophy.missable ? 'note--missable' : 'note--safe'}` },
-          el('b', {}, trophy.missable ? 'Yes. ' : 'No. '),
-          trophy.missable ? trophy.missableReason : 'Nothing in the official description ties this one to a closing window: it stays available in free roam after the credits.',
-        ),
-      ),
-    );
+/** Draw the inspector for the open trophy, if any. */
+export function renderDetail(container, ctx) {
+  const { data, store, state } = ctx;
+  const trophy = state.openId ? data.byId.get(state.openId) : null;
+  if (!trophy) {
+    mount(container, emptyGuide(data));
+    return;
   }
 
-  if (trophy.target) {
-    body.append(section('Counter', counterBlock(trophy, store, onCounter)));
+  const earned = state.earned.has(trophy.id);
+  const hidden = isHidden(trophy, state) && !isPeeked(trophy.id);
+  const stage = data.stages.find((s) => s.id === trophy.stage);
+
+  const head = el('div', { class: 'guide-head' }, [
+    el('div', { class: 'guide-kicker' }, [
+      el('span', { class: `grade grade-${trophy.grade}` }, trophy.grade),
+      el('span', {}, KIND_LABELS[trophy.kind] ?? trophy.kind),
+      stage ? el('span', {}, `· ${stage.title}`) : null,
+    ]),
+    el('h2', { class: 'guide-title' }, displayName(trophy, state)),
+    el('div', { class: 'guide-official' }, [
+      el('span', {}, 'PlayStation description'),
+      displayDescription(trophy, state),
+    ]),
+  ]);
+
+  if (hidden) {
+    mount(container, [
+      el('div', { class: 'guide' }, [
+        head,
+        el('div', { class: 'spoiler-cover' }, [
+          el('strong', {}, 'Story spoiler hidden'),
+          el('p', {}, 'The spoiler setting hides this trophy\'s name, description and guide until you earn it.'),
+          el('button', {
+            class: 'btn',
+            type: 'button',
+            onclick: () => {
+              peek(trophy.id);
+              store.openTrophy(trophy.id);
+            },
+          }, 'Reveal this one'),
+        ]),
+      ]),
+    ]);
+    return;
   }
 
-  body.append(
-    section(
-      'Sources',
-      el('div', { class: 'sources' }, ...trophy.sources.map(sourceCard)),
-      el('p', { class: 'source__covers', style: 'margin-top:8px' },
-        'Every specific claim above is one of these three: the official list for the wording, PSN\'s counter for a number, this entry\'s reading of the description for the method.'),
-    ),
-  );
+  const actions = el('div', { class: 'btn-row' }, [
+    el('button', {
+      class: earned ? 'btn' : 'btn btn-primary',
+      type: 'button',
+      onclick: () => store.toggleEarned(trophy.id),
+    }, earned ? 'Mark as not earned' : 'Mark as earned'),
+  ]);
 
-  body.append(
-    el(
-      'div',
-      { style: 'margin-top:22px' },
-      el(
-        'button',
-        { type: 'button', class: `button ${earned ? '' : 'button--primary'}`, style: 'width:100%', onclick: () => onToggle(trophy.id, !earned) },
-        earned ? 'Mark as not earned' : 'Mark as earned',
-      ),
-    ),
-  );
-
-  node.append(body);
+  mount(container, [
+    el('div', { class: 'guide' }, [
+      head,
+      el('div', { class: 'guide-section' }, [
+        el('h4', {}, 'The guide'),
+        el('div', { class: 'guide-body' }, [el('p', {}, trophy.guide)]),
+      ]),
+      trophy.steps?.length
+        ? el('div', { class: 'guide-section' }, [
+            el('h4', {}, 'Steps'),
+            el('ol', { class: 'steps' }, trophy.steps.map((step, index) =>
+              el('li', { dataset: { step: String(index + 1) } }, step))),
+          ])
+        : null,
+      el('div', { class: 'guide-section' }, [
+        el('h4', {}, 'Window'),
+        el('div', { class: 'callout callout-safe' }, [
+          el('strong', {}, 'When you can get it'),
+          trophy.window ?? 'Any time.',
+        ]),
+      ]),
+      el('div', { class: 'guide-section' }, [missableCallout(trophy)]),
+      el('div', { class: 'guide-section' }, [
+        el('h4', {}, 'Sources'),
+        el('ul', { class: 'sources' }, (trophy.sources ?? []).map(sourceItem)),
+      ]),
+      el('div', { class: 'guide-section' }, [actions]),
+    ]),
+  ]);
 }

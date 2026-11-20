@@ -1,39 +1,57 @@
-// The filter rail's rules, kept out of the DOM: one state object, one predicate, and the spoiler
-// rule that decides whether a trophy's name may be read.
+// Filtering and search. A trophy matches a kind filter by its `kind`, and the
+// missable filter by being flagged missable or carrying no confirmed method.
 
-import { KIND_LABELS } from './data.js';
+export const FILTERS = [
+  { id: 'all', label: 'All trophies' },
+  { id: 'story', label: 'Story' },
+  { id: 'missable', label: 'Missable & at risk' },
+  { id: 'collectibles', label: 'Collectibles' },
+  { id: 'activities', label: 'Activities' },
+  { id: 'crime', label: 'Crime & police' },
+  { id: 'money', label: 'Money & property' },
+  { id: 'strangers', label: 'Strangers' },
+  { id: 'secrets', label: 'Secrets' },
+  { id: 'online', label: 'Online' },
+];
 
-export function createFilters() {
-  return { kind: 'all', grade: 'all', missable: false, unearned: false, query: '' };
+export const KIND_LABELS = {
+  platinum: 'Platinum',
+  story: 'Story',
+  strangers: 'Strangers',
+  collectibles: 'Collectibles',
+  activities: 'Activities',
+  crime: 'Crime',
+  money: 'Money',
+  secrets: 'Secrets',
+  online: 'Online',
+};
+
+/** True when a trophy passes the kind/missable filter. */
+export function matchesFilter(trophy, filterId) {
+  if (filterId === 'all') return true;
+  if (filterId === 'missable') return Boolean(trophy.missable) || trophy.status === 'unsolved';
+  return trophy.kind === filterId;
 }
 
-/** A story trophy stays covered until it is earned, and only while spoiler mode is on. */
-export function isRevealed(trophy, store) {
-  if (!store.spoilerOn()) return true;
-  if (!trophy.spoiler) return true;
-  return store.isEarned(trophy.id);
+/** True when a trophy matches the search box (name, description, guide, target). */
+export function matchesQuery(trophy, query) {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return true;
+  return [trophy.name, trophy.description, trophy.guide, trophy.target, trophy.window]
+    .filter(Boolean)
+    .some((field) => String(field).toLowerCase().includes(needle));
 }
 
-export function matches(trophy, filters, store) {
-  if (filters.kind !== 'all' && trophy.kind !== filters.kind) return false;
-  if (filters.grade !== 'all' && trophy.grade !== filters.grade) return false;
-  if (filters.missable && !trophy.missable) return false;
-  if (filters.unearned && store.isEarned(trophy.id)) return false;
-  if (filters.query) {
-    const needle = filters.query.toLowerCase();
-    const haystack = `${trophy.name} ${trophy.description} ${trophy.guide} ${KIND_LABELS[trophy.kind] ?? ''}`.toLowerCase();
-    if (!haystack.includes(needle)) return false;
+/** The visible list for the current filter and search, in official order. */
+export function selectVisible(trophies, { filter, query }) {
+  return trophies.filter((trophy) => matchesFilter(trophy, filter) && matchesQuery(trophy, query));
+}
+
+/** How many trophies each filter holds, for the sidebar counts. */
+export function countByFilter(trophies) {
+  const counts = {};
+  for (const filter of FILTERS) {
+    counts[filter.id] = trophies.filter((trophy) => matchesFilter(trophy, filter.id)).length;
   }
-  return true;
-}
-
-export function applyFilters(trophies, filters, store) {
-  return trophies.filter((trophy) => matches(trophy, filters, store));
-}
-
-/** How many trophies each kind holds, for the chip counters. */
-export function countByKind(trophies) {
-  const counts = { all: trophies.length };
-  for (const trophy of trophies) counts[trophy.kind] = (counts[trophy.kind] ?? 0) + 1;
   return counts;
 }
