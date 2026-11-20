@@ -2,57 +2,60 @@
 [![rank](https://make.fun/badge/gta6-trophy-guide-01/Amburadullzz/makefun-trophy-guide/rank.svg)](https://make.fun/bounty/gta6-trophy-guide-01/leaderboard)
 [![reward](https://make.fun/badge/gta6-trophy-guide-01/Amburadullzz/makefun-trophy-guide/reward.svg)](https://make.fun/bounty/gta6-trophy-guide-01)
 
-# Leonida Ledger — a GTA VI trophy guide and tracker
+# Leonida Ledger
 
-An offline guide and progress tracker for all 55 PlayStation 5 trophies of
-Grand Theft Auto VI. Open `app/index.html` from any static server and it runs
-with the network off: every script, stylesheet, icon and byte of trophy data
-is a file inside `app/`, and the page requests nothing from anywhere else.
+An offline guide and tracker for the 55 PlayStation 5 trophies of Grand Theft Auto VI.
 
-What is in it:
+Every trophy is there with its official name, description and grade, and with a guide written for this app:
+what to do, where, how, and when the description ties it to a window that closes. Each guide names the sources
+behind its steps and links them, so a claim about a location, a count or a mission can be traced. Beside the
+guides the app carries a seven-stage roadmap to the platinum - story, strands, money, open world, collections,
+100% - built from the official descriptions, and a points-of-no-return table for the handful of moments that
+close content for good.
 
-- **The tracker.** All 55 trophies with their official name, description and
-  grade, a checkbox each, progress saved in `localStorage`, and export/import
-  of a progress file so a run can be backed up or moved to another machine.
-- **Filters** by kind (story, strangers, collectibles, activities, crime,
-  money, secrets, online), a missable view, and a free-text search.
-- **A spoiler setting** that blanks the names and descriptions of story
-  trophies until they are earned.
-- **A guide per trophy** in this entry's own words: what to do, where, how,
-  the window it lives in, and a named source with a link for every specific
-  claim.
-- **A roadmap to the platinum** in seven stages, built from the official
-  descriptions and the chapter, mission and collectible counts they imply.
+The tracker keeps progress in `localStorage`, exports it to a JSON file and imports it back, filters by kind
+(story, activities, collectibles, platinum and 100%, online) and by the missable flag, and has a spoiler-safe
+switch that hides the name, description and guide of every story trophy you have not earned - with a
+"reveal just this one" escape for a single entry.
 
-The trophy names, descriptions and grades are PlayStation's, reproduced as
-published; everything else is written for this entry. Sources are cited, never
-copied.
+It is static files with no build step. `app/index.html` opens in a desktop browser with the network off: every
+script, stylesheet, icon and data file it loads is a file under `app/`, and it makes no request at run time.
+The only links it offers are the citation links in a guide, which open only if you follow them.
 
-## Files
+## Run it
 
-    app/index.html          the page shell
-    app/data/trophies.json  the 55 trophies, their guides, sources and roadmap
-    app/src/                the app: state, filters, views, styles
-    main.ts                 copies app/ and screenshots/ to $MAKEFUN_OUTPUT_DIR
-                            and writes dossier.json with vendor/makefun-frontend.ts
-    serve.ts                a small static server for app/ (node serve.ts)
+```sh
+node serve.ts              # serves app/ on http://localhost:8080
+node main.ts               # stages app/ + screenshots/ into /output and writes dossier.json
+MAKEFUN_OUTPUT_DIR=out node main.ts    # the same, into ./out
+```
 
-Run it locally with `node serve.ts` and open http://localhost:8080, or hand it
-in with `mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts`.
+## Layout
 
-## Checking it
+```
+app/                    the guide: static files, no build step
+  index.html            the page
+  icon.svg              the app's own mark
+  data/trophies.json    the 55 trophies: official name, description, grade, guide, steps, sources
+  data/roadmap.json     the seven stages and the points of no return
+  styles/               base tokens, page layout, components
+  src/core/             data loading, progress store, settings, filters, export/import, spoiler rules
+  src/ui/               header, filter rail, checklist, guide panel, roadmap, about, toast
+screenshots/            four captures of the running app (the first is the cover)
+main.ts                 the entrypoint: stages the entry and writes dossier.json
+serve.ts                a tiny static server for app/, for local use
+tools/                  data build, trophy-list check, reference check
+vendor/                 the kit's makefun-frontend.ts, unchanged
+```
 
-`tools/` holds the checks used while building this entry; none of it is part of
-the app or of what `main.ts` hands in.
+## Checks
 
-    node tools/verify-trophies.mjs      55 of 55 names, descriptions and grades
-                                        diffed against the frozen official list
-    node tools/browser-check.mjs        headless Chromium: boot, 55 rows, no
-                                        console error, checkbox + reload,
-                                        export/clear/import, every request local
-    node tools/check-references.mjs     every load-time reference in app/ is a
-                                        file under app/
-    node tools/screenshots.mjs          the four screenshots, from the app itself
-    python3 tools/optimize-screenshots.py   shrink them under 256 KiB
+```sh
+node tools/verify_trophies.mjs    # the 55 names against the official list, plus guides and sources
+node tools/check_references.mjs   # every reference is a file under app/, nothing goes to the network
+```
 
-MIT licensed. Not affiliated with Rockstar Games or Take-Two Interactive.
+## Licence
+
+MIT, copyright 2026 Amburadullzz. Trophy names, descriptions and grades are PlayStation's. No Rockstar Games
+logo, artwork, box art or game screenshot is used anywhere in the app or its screenshots.

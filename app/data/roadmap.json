@@ -1,0 +1,175 @@
+{
+ "stages": [
+  {
+   "id": "chapter1",
+   "order": 1,
+   "short": "Ch.1 window",
+   "title": "Chapter 1: the one window that closes",
+   "when": "Before the Chapter 1 finale",
+   "goal": "Take the balcony meditation before the chapter ends, and sweep Jason's house while you can.",
+   "detail": "Chapter 1 is the only part of the game with a hard point of no return that costs a trophy. One morning after Down to Earth, Lucia says she is going to meditate; follow her onto the balcony and accept. That is one of the 18 meditations the Positive Mental Attitude trophy asks for, and it is never offered again. While the house is still yours, also play the home console and finish Shirley's tasks - neither is a trophy, both are easier now.",
+   "trophies": [
+    28
+   ]
+  },
+  {
+   "id": "spine",
+   "order": 2,
+   "short": "Story spine",
+   "title": "The spine: 91 missions across five chapters",
+   "when": "Chapters 1-5",
+   "goal": "Play the campaign straight through; twelve trophies are awarded by the story alone.",
+   "detail": "Nothing in the main story can be missed - no difficulty setting, no gold-medal objectives, no branching mission failure. Three chapter trophies arrive a mission or two late (Paradise Lost in Chapter 2, T**s Ass Drug Money in Chapter 3, Vice City, Baby! in Chapter 4), so do not read the delay as a bug. Missions cannot be replayed and there is no New Game+, so keep a manual save before the Chapter 5 finale if you want the other ending.",
+   "trophies": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13
+   ]
+  },
+  {
+   "id": "strands",
+   "order": 3,
+   "short": "Strands",
+   "title": "Side strands and the partner jobs",
+   "when": "Chapter 2 onwards, finishing after the credits",
+   "goal": "Run the seven character strands and the two-partner robberies; one strand can be lost to a timer.",
+   "detail": "Strangers & Freaks counts eight strands and not every strand counts, so read the trophy counter before and after each strand's final mission. The one timed risk is Race Against Yago in Chapter 3: start it the moment the hourglass appears. The rest - Andy, Kenton, Billy, Randy, Tyrone, Bret and Cal - survive the credits. Partner trophies need the two protagonists roaming together, which opens with Coffee Break in Chapter 2.",
+   "trophies": [
+    20,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    29,
+    33,
+    34,
+    39
+   ]
+  },
+  {
+   "id": "money",
+   "order": 4,
+   "short": "Money",
+   "title": "Money: launder it, spend it, buy the garages",
+   "when": "Chapter 3 onwards, once the Dye Pack Jammer and the estate app are yours",
+   "goal": "Turn robberies into the four economy trophies without grinding.",
+   "detail": "The vault jobs are the engine: up to $205,000 a robbery, which covers Little Boxes ($160,000 for eight garages) and Treat Yo Self ($100,000 of shopping) in a handful of evenings. Fence the marked bills to Yasmani for Dime on the Dollar, and buy the garages before chasing On the Spot, because every registration needs a parking spot.",
+   "trophies": [
+    52,
+    53,
+    54,
+    55
+   ]
+  },
+  {
+   "id": "activities",
+   "order": 5,
+   "short": "Open world",
+   "title": "Open-world activities, robberies and one-off stunts",
+   "when": "Any time; most open with story progress",
+   "goal": "Clear the activity trophies, starting with the ones whose maps you can unfog.",
+   "detail": "This is the widest group: stunts, races, drone trials, shooting ranges, arcade games, gang operations, vaults, challenges and a handful of one-off stunts like the airliner at VCIA and the tank at Mile Zero. None of it is missable, and most of it overlaps with the 100% checklist - 250 stunts against 300 wanted, 50 challenges against 70, 20 race wins against 30.",
+   "trophies": [
+    15,
+    16,
+    17,
+    18,
+    19,
+    21,
+    32,
+    36,
+    37,
+    38,
+    40,
+    41,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51
+   ]
+  },
+  {
+   "id": "collections",
+   "order": 6,
+   "short": "Collections",
+   "title": "Collections and exploration",
+   "when": "Start scanning in Chapter 1, finish after the credits",
+   "goal": "Three card sets, 100 WAiNK scans, 100 vehicles and an unfogged map.",
+   "detail": "These are the four trophies that reward doing a little all the way through: scan every new vehicle you pass, scan landmarks as you drive, and pick cards up as you see them. The map unfogs by flying, and unfogging is what puts the robbery targets on it - so the exploration trophy pays for itself twice.",
+   "trophies": [
+    30,
+    31,
+    35,
+    42
+   ]
+  },
+  {
+   "id": "platinum",
+   "order": 7,
+   "short": "Platinum run",
+   "title": "100% completion, then the platinum",
+   "when": "After the credits",
+   "goal": "Close the 100% checklist for A Long Road; Vice Got a Price! follows automatically.",
+   "detail": "The checklist only appears after the credits, under Progress > Stats > 100% Completion, and everything done before then already counts. It is partial by design: 70 of 80 challenges, 200 of 277 vehicles, 100 of 255 animals, 50 of 66 weapons, 300 of 397 stunts, 100 optional tasks, but all 39 gang operations, all 8 vaults, every video game and every shooting-range gold.",
+   "trophies": [
+    14,
+    1
+   ]
+  }
+ ],
+ "pointsOfNoReturn": [
+  {
+   "deadline": "End of Chapter 1",
+   "costs": "Lucia's balcony meditation",
+   "detail": "One of the 18 meditations for Positive Mental Attitude, offered once, on the balcony of Jason's house. After Chapter 2 starts it is gone."
+  },
+  {
+   "deadline": "Tourist Trap (late Chapter 1)",
+   "costs": "Jason's house and the cash in your pocket",
+   "detail": "The mission ends the house; bank what you are carrying first. Nothing here is a trophy, but the home console and the house collectibles go with it."
+  },
+  {
+   "deadline": "Checking Out (Chapter 2 finale)",
+   "costs": "The Starlet Motel safehouse",
+   "detail": "Use it before the mission if you rely on it for outfits, storage or saves."
+  },
+  {
+   "deadline": "Race Against Yago (Chapter 3)",
+   "costs": "Yago's strand, and possibly Strangers & Freaks",
+   "detail": "An hourglass mission: it fails if you leave it. Start it as soon as it appears."
+  },
+  {
+   "deadline": "The final mission (Chapter 5)",
+   "costs": "Nothing trophy-wise, but the other ending",
+   "detail": "Missions cannot be replayed and there is no New Game+. Keep a manual save before the finale."
+  }
+ ],
+ "notes": {
+  "missions": 91,
+  "chapters": 5,
+  "chapterMissionCounts": {
+   "1": 22,
+   "2": 11,
+   "3": 26,
+   "4": 25,
+   "5": 7
+  },
+  "timeToPlatinum": "about 200 hours (PowerPyx), 4/10 difficulty"
+ }
+}

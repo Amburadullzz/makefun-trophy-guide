@@ -1,36 +1,120 @@
-// A working gta6-trophy-guide-01 entry (Node 22, standard library only): the guide is this directory's app/ folder,
-// plain static files a browser opens at app/index.html (ES modules, CSS, no build step), offline: it loads nothing
-// over the network, and its trophy list and guides are app/data/trophies.json. The program hands it in: it copies app/
-// and screenshots/ from beside this file to /output and writes /output/dossier.json, the summary the judge reads (your
-// screenshots, the first load's files and bytes, and your source), with the vendored make.fun library. Leave
-// vendor/makefun-frontend.ts as it is: the scorer requires dossier.json to be byte for byte what its own copy writes.
+// Hands the entry in.
 //
-// Only the plumbing, not a winner: a plain checklist of the 55 trophies with a one-line hint each. Write a real guide
-// for every trophy in your own words, a roadmap to the platinum, filters and a spoiler setting in app/, put 3 or 4 PNG
-// or JPEG screenshots of it in screenshots/ (the first by name is the cover; shots.json says which views this
-// starter's were taken of), and run it.
+// The guide itself is plain static files in app/ (opened at app/index.html, no
+// build step, nothing fetched from the network) plus the screenshots in
+// screenshots/. This program stages both into the output directory the grader
+// reads and writes dossier.json beside them with the kit's own library, so the
+// judge's outline of the source matches what the scorer recomputes.
 //
-// Serve it locally with `node serve.ts`, then open http://localhost:8080.
-// Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
-//   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+//   node main.ts                                  # writes to /output
+//   MAKEFUN_OUTPUT_DIR=out node main.ts           # writes to ./out
+//   node main.ts --out out --quiet                # same, with flags
+//
+// The two runs the grader makes must produce identical bytes, so nothing here
+// depends on time, ordering of a directory listing or randomness.
 
-import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { Buffer } from 'node:buffer';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-frontend.ts';
 
-const here = fileURLToPath(new URL('.', import.meta.url));
-const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+/** The directory this file lives in: the root of the entry. */
+const entryRoot = dirname(fileURLToPath(import.meta.url));
 
-mkdirSync(out, { recursive: true });
-cpSync(join(here, 'app'), join(out, 'app'), { recursive: true });
-mkdirSync(join(out, 'screenshots'), { recursive: true });
-if (existsSync(join(here, 'screenshots'))) cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
+/** Caps the scorer applies; mirrored here so a refusal happens before upload. */
+const DOSSIER_LIMITS = {
+  text_max_bytes: 163_840,
+  screenshots: { max: 4, max_bytes: 262_144 },
+  app_max_files: 993,
+  app_max_bytes: 50_331_648,
+};
 
-// The scorer's own caps (reference/gate.json): only text_max_bytes shapes the bytes; the others refuse an entry the
-// scorer would refuse (more than 4 screenshots or one over 256 KiB; more than 993 files and directories in app/ or
-// 48 MiB of app files: app/ counts beside /output's own 1000-entry cap, its screenshots/ and dossier.json).
-writeFileSync(
-  join(out, 'dossier.json'),
-  buildDossier(out, { text_max_bytes: 163840, screenshots: { max: 4, max_bytes: 262144 }, app_max_files: 993, app_max_bytes: 50331648 }),
-);
+/** What the program was asked to do, from argv and the environment. */
+interface RunOptions {
+  outputDir: string;
+  quiet: boolean;
+}
+
+function parseArgs(argv: string[], env: NodeJS.ProcessEnv): RunOptions {
+  let outputDir = env.MAKEFUN_OUTPUT_DIR && env.MAKEFUN_OUTPUT_DIR.trim() !== ''
+    ? env.MAKEFUN_OUTPUT_DIR.trim()
+    : '/output';
+  let quiet = false;
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (arg === '--out' || arg === '--output-dir') {
+      const value = argv[index + 1];
+      if (!value || value.startsWith('-')) throw new Error(arg + ' needs a directory');
+      outputDir = value;
+      index += 1;
+    } else if (arg.startsWith('--out=')) {
+      outputDir = arg.slice('--out='.length);
+    } else if (arg === '--quiet' || arg === '-q') {
+      quiet = true;
+    } else if (arg === '--help' || arg === '-h') {
+      throw new Error('usage: node main.ts [--out <dir>] [--quiet]');
+    } else {
+      throw new Error('unknown argument: ' + arg);
+    }
+  }
+  return { outputDir: resolve(outputDir), quiet };
+}
+
+/** Fails early, and with a readable message, if the entry is not where it should be. */
+function checkEntryLayout(root: string): void {
+  const required = [join(root, 'app', 'index.html'), join(root, 'app', 'data', 'trophies.json')];
+  for (const path of required) {
+    if (!existsSync(path) || !statSync(path).isFile()) {
+      throw new Error('missing file in the entry: ' + path);
+    }
+  }
+}
+
+function countTree(dir: string): number {
+  let total = 1;
+  for (const name of readdirSync(dir).sort()) {
+    const path = join(dir, name);
+    total += statSync(path).isDirectory() ? countTree(path) : 1;
+  }
+  return total;
+}
+
+/** Replaces a previous copy, so a second run never leaves stale files behind. */
+function stageFolder(from: string, to: string): void {
+  if (!existsSync(from)) return;
+  rmSync(to, { recursive: true, force: true });
+  mkdirSync(to, { recursive: true });
+  for (const name of readdirSync(from).sort()) {
+    const source = join(from, name);
+    const target = join(to, name);
+    if (statSync(source).isDirectory()) stageFolder(source, target);
+    else copyFileSync(source, target);
+  }
+}
+
+function main(): void {
+  const options = parseArgs(process.argv.slice(2), process.env);
+  checkEntryLayout(entryRoot);
+
+  mkdirSync(options.outputDir, { recursive: true });
+  stageFolder(join(entryRoot, 'app'), join(options.outputDir, 'app'));
+  stageFolder(join(entryRoot, 'screenshots'), join(options.outputDir, 'screenshots'));
+
+  const dossier = buildDossier(options.outputDir, DOSSIER_LIMITS);
+  writeFileSync(join(options.outputDir, 'dossier.json'), dossier);
+
+  if (!options.quiet) {
+    const dossierText = typeof dossier === 'string' ? dossier : Buffer.from(dossier).toString('utf8');
+    const parsed = JSON.parse(dossierText) as { text?: string };
+    const totals = (parsed.text ?? '')
+      .split('\n')
+      .find((line) => line.startsWith('Totals:')) ?? 'Totals: (the library reported none)';
+    console.log('staged app/ and screenshots/ into ' + options.outputDir);
+    console.log('app/ holds ' + countTree(join(entryRoot, 'app')) + ' files and directories');
+    console.log(totals);
+  }
+}
+
+main();
