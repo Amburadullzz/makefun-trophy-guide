@@ -1,103 +1,72 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Leonida Ledger - GTA VI trophy guide and tracker</title>
-<meta name="description" content="An offline guide and tracker for the 55 PlayStation 5 trophies of Grand Theft Auto VI: every trophy, a cited guide, a roadmap to the platinum, and progress saved in your browser.">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="styles/base.css">
-<link rel="stylesheet" href="styles/layout.css">
-<link rel="stylesheet" href="styles/components.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Leonida Legend — a GTA VI trophy guide and tracker</title>
+  <meta name="description" content="An offline guide and checklist for the 55 PlayStation 5 trophies of Grand Theft Auto VI: official names, descriptions and grades, a cited guide to each, a roadmap to the platinum, missable flags and saved progress.">
+  <meta name="color-scheme" content="dark">
+  <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-<a class="skip-link" href="#main">Skip to the tracker</a>
+  <div class="shell">
+    <header class="masthead">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">LL</span>
+        <div>
+          <h1>Leonida Legend — <em>the 55 trophies</em>, tracked</h1>
+          <p class="tagline">An offline field guide to every PlayStation 5 trophy in Grand Theft Auto VI: the official text, a cited guide in my own words, the roadmap to the platinum, and a checklist that remembers where you stopped.</p>
+        </div>
+      </div>
+      <div class="masthead-tools">
+        <label class="spoiler-switch" for="spoiler-toggle">
+          <input type="checkbox" id="spoiler-toggle" checked>
+          <span class="switch-track" aria-hidden="true"></span>
+          <span class="label"><strong>Spoiler shield</strong> <span id="spoiler-label">on</span></span>
+        </label>
+        <div class="masthead-actions">
+          <button class="btn primary" type="button" id="export-button">Export progress</button>
+          <button class="btn" type="button" id="import-button">Import</button>
+          <input type="file" id="import-input" accept="application/json,.json" hidden>
+          <button class="btn ghost" type="button" id="reset-button">Clear</button>
+        </div>
+      </div>
+    </header>
 
-<header class="topbar">
-  <div class="brand">
-    <svg class="brand-mark" viewBox="0 0 40 40" role="img" aria-label="Leonida Ledger">
-      <defs>
-        <linearGradient id="markGradient" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#ff5d7a"/>
-          <stop offset="1" stop-color="#38e8cd"/>
-        </linearGradient>
-      </defs>
-      <rect x="1.5" y="1.5" width="37" height="37" rx="9" fill="none" stroke="url(#markGradient)" stroke-width="2"/>
-      <path d="M11 12 L20 29 L29 12" fill="none" stroke="url(#markGradient)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle cx="20" cy="9.5" r="2.1" fill="#ffd166"/>
-    </svg>
-    <div class="brand-text">
-      <h1>Leonida Ledger</h1>
-      <p>Grand Theft Auto VI &middot; 55 PS5 trophies &middot; guide, roadmap and tracker</p>
-    </div>
+    <section class="board" id="progress-board" aria-label="Progress"></section>
+
+    <nav class="view-tabs" role="tablist" aria-label="Views">
+      <button class="tab" type="button" role="tab" data-view="tracker" aria-selected="true">Tracker &amp; guides</button>
+      <button class="tab" type="button" role="tab" data-view="roadmap" aria-selected="false">Roadmap &amp; missables</button>
+    </nav>
+
+    <main>
+      <section id="view-tracker" role="tabpanel" aria-label="Tracker and guides">
+        <div class="tracker-layout">
+          <aside class="rail" id="filter-rail" aria-label="Filters"></aside>
+          <section class="list-pane" aria-label="Trophy checklist">
+            <div class="list-head" id="list-head"></div>
+            <ul class="list" id="trophy-list" role="listbox" aria-label="Trophies"></ul>
+          </section>
+          <aside class="detail-pane" id="trophy-detail" aria-label="Trophy guide"></aside>
+        </div>
+      </section>
+
+      <section id="view-roadmap" role="tabpanel" aria-label="Roadmap and missables" hidden>
+        <div id="roadmap-panel"></div>
+      </section>
+    </main>
+
+    <p class="board-note" id="boot-error" hidden></p>
+
+    <footer class="foot">
+      <span>Unofficial fan work. Trophy names, descriptions and grades are PlayStation's; the guides, roadmap and code are this entry's own. No Rockstar Games logo, artwork or game screenshot is used.</span>
+      <span>Every guide names its sources. <a href="data/trophies.json">trophies.json</a> · <a href="data/roadmap.json">roadmap.json</a></span>
+    </footer>
   </div>
 
-  <div class="headline-stats" id="headline-stats">
-    <div class="ring-wrap" aria-hidden="true">
-      <svg class="ring" viewBox="0 0 64 64">
-        <circle class="ring-track" cx="32" cy="32" r="27" fill="none" stroke-width="6"/>
-        <circle class="ring-value" id="ring-value" cx="32" cy="32" r="27" fill="none" stroke-width="6"
-                stroke-linecap="round" transform="rotate(-90 32 32)" stroke-dasharray="0 999"/>
-      </svg>
-      <span class="ring-label" id="ring-label">0%</span>
-    </div>
-    <div class="stat-block">
-      <span class="stat-number" id="stat-earned">0</span>
-      <span class="stat-caption">of 55 earned</span>
-    </div>
-    <div class="stat-block stat-block--grades" id="stat-grades">
-      <span class="grade-count grade-count--platinum" data-grade="platinum">P 0/1</span>
-      <span class="grade-count grade-count--gold" data-grade="gold">G 0/2</span>
-      <span class="grade-count grade-count--silver" data-grade="silver">S 0/6</span>
-      <span class="grade-count grade-count--bronze" data-grade="bronze">B 0/46</span>
-    </div>
-  </div>
+  <div class="toast-stack" id="toast-stack" aria-live="polite"></div>
 
-  <div class="headline-actions">
-    <button class="btn" id="btn-export" type="button" title="Save your progress as a JSON file">
-      <span aria-hidden="true">&#8595;</span> Export
-    </button>
-    <button class="btn" id="btn-import" type="button" title="Load a progress file you exported earlier">
-      <span aria-hidden="true">&#8593;</span> Import
-    </button>
-    <input type="file" id="import-input" accept="application/json,.json" hidden>
-    <label class="switch" title="Hide the names and descriptions of story trophies until you earn them">
-      <input type="checkbox" id="spoiler-toggle">
-      <span class="switch-track" aria-hidden="true"><span class="switch-knob"></span></span>
-      <span class="switch-text">Spoiler-safe</span>
-    </label>
-  </div>
-</header>
-
-<nav class="tabs" id="tabs" aria-label="Views">
-  <button class="tab is-active" type="button" data-view="tracker">Tracker</button>
-  <button class="tab" type="button" data-view="roadmap">Roadmap</button>
-  <button class="tab" type="button" data-view="about">About the list</button>
-  <span class="tabs-note" id="tabs-note">55 trophies &middot; 1 platinum &middot; 2 gold &middot; 6 silver &middot; 46 bronze &middot; 0 online</span>
-</nav>
-
-<main id="main">
-  <section class="view" id="view-tracker" aria-label="Tracker">
-    <aside class="rail" id="filter-rail" aria-label="Filters"></aside>
-    <div class="list-pane" id="tracker-list" aria-label="Trophy checklist"></div>
-    <div class="guide-pane" id="guide-pane" aria-label="Guide for the selected trophy"></div>
-  </section>
-  <section class="view" id="view-roadmap" aria-label="Roadmap to the platinum" hidden></section>
-  <section class="view" id="view-about" aria-label="About this guide" hidden></section>
-</main>
-
-<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
-
-<footer class="footer">
-  <p>
-    Every guide here is written for this app and cites its source beside the steps. Trophy names, descriptions
-    and grades are PlayStation's. No Rockstar Games logo, artwork or screenshot is used.
-  </p>
-  <p class="footer-note">
-    Progress is stored in this browser only (<code>localStorage</code>). Export a file to move it between machines.
-  </p>
-</footer>
-
-<script type="module" src="src/main.js"></script>
+  <script type="module" src="src/main.js"></script>
 </body>
 </html>

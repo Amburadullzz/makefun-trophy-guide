@@ -1,0 +1,26 @@
+[
+  {
+    "file": "1-cover.png",
+    "view": "tracker",
+    "shows": "The checklist at 16 of 55 with the progress board, the filter rail, the story rows behind the spoiler shield, and the Pest Control guide open beside it with its two sources.",
+    "state": { "filter": "all", "selected": "pest-control", "spoilerShield": true, "earned": 16 }
+  },
+  {
+    "file": "2-guide.png",
+    "view": "tracker",
+    "shows": "The one missable trophy, Positive Mental Attitude: the missable callout, the guide in my own words, three steps, and both cited sources with the mark-as-earned button.",
+    "state": { "filter": "all", "selected": "positive-mental-attitude", "spoilerShield": true, "earned": 16 }
+  },
+  {
+    "file": "3-roadmap.png",
+    "view": "roadmap",
+    "shows": "The roadmap's first three stages with their mission counts, the per-stage trophy chips and progress, the missable card for Positive Mental Attitude, and the table of dates that close.",
+    "state": { "filter": "all", "spoilerShield": true, "earned": 16 }
+  },
+  {
+    "file": "4-filter.png",
+    "view": "tracker",
+    "shows": "The Story filter selected: 12 rows, five earned and seven masked by the spoiler shield, with the filter counts and the shield state in the header.",
+    "state": { "filter": "story", "selected": "hi-jacked", "spoilerShield": true, "earned": 16 }
+  }
+]

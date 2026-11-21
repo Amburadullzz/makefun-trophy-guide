@@ -1,220 +1,159 @@
-// Boots the app: loads the data, builds the state, wires the header controls
-// and redraws the views whenever something changes.
+// Boot: load the catalogue, mount the two views and wire the header controls.
+// One job — start the app and keep the parts in step. Each view owns its own
+// drawing; this file owns the tab switch, the spoiler switch and the transfer
+// buttons, and nothing else.
 
-import { loadGuideData } from './core/trophy-data.js';
-import { createProgressStore } from './core/progress-store.js';
-import { createSettingsStore } from './core/settings-store.js';
-import { emptyFilters, applyFilters } from './core/trophy-filter.js';
-import { downloadProgress, readProgressFile, applyImportedProgress } from './core/progress-transfer.js';
-import { renderProgressHeader } from './ui/progress-header.js';
-import { renderFilterRail } from './ui/filter-rail.js';
-import { renderTrackerList } from './ui/tracker-list.js';
-import { renderGuidePanel } from './ui/guide-panel.js';
-import { renderRoadmap } from './ui/roadmap-view.js';
-import { renderAbout } from './ui/about-view.js';
-import { showToast } from './ui/toast.js';
-import { byId } from './ui/dom.js';
+import { el } from './dom.js';
+import { loadCatalog } from './catalog.js';
+import { ProgressStore } from './store.js';
+import { createTrackerView } from './tracker-view.js';
+import { createRoadmapView } from './roadmap-view.js';
+import { createProgressBoard } from './progress-board.js';
+import { downloadSnapshot, readSnapshotFile, applyImported } from './transfer.js';
 
-const state = {
-  data: null,
-  store: null,
-  settings: null,
-  filters: emptyFilters(),
-  selectedId: null,
-  view: 'tracker',
-  peeked: new Set(),
-  visibleTrophies: [],
+const elements = {
+  board: document.getElementById('progress-board'),
+  rail: document.getElementById('filter-rail'),
+  list: document.getElementById('trophy-list'),
+  listHead: document.getElementById('list-head'),
+  detail: document.getElementById('trophy-detail'),
+  roadmap: document.getElementById('roadmap-panel'),
+  trackerView: document.getElementById('view-tracker'),
+  roadmapView: document.getElementById('view-roadmap'),
+  tabs: [...document.querySelectorAll('[data-view]')],
+  spoiler: document.getElementById('spoiler-toggle'),
+  spoilerLabel: document.getElementById('spoiler-label'),
+  exportButton: document.getElementById('export-button'),
+  importButton: document.getElementById('import-button'),
+  importInput: document.getElementById('import-input'),
+  resetButton: document.getElementById('reset-button'),
+  toastStack: document.getElementById('toast-stack')
 };
-
-const actions = {
-  toggleEarned(id) {
-    const now = state.store.toggle(id);
-    const trophy = state.data.byId.get(id);
-    renderAll();
-    if (trophy) showToast((now ? 'Earned: ' : 'Unmarked: ') + trophy.name, 1800);
-  },
-  select(id) {
-    state.selectedId = id;
-    renderList();
-    renderGuide();
-    revealRow(id);
-  },
-  openTrophy(id) {
-    state.selectedId = id;
-    state.peeked.add(id);
-    showView('tracker');
-    renderTracker();
-    revealRow(id);
-  },
-  setKind(kind) {
-    state.filters.kind = kind;
-    renderTracker();
-  },
-  setMissableOnly(on) {
-    state.filters.missableOnly = on;
-    renderTracker();
-  },
-  setUnearnedOnly(on) {
-    state.filters.unearnedOnly = on;
-    renderTracker();
-  },
-  setQuery(query) {
-    state.filters.query = query;
-    renderList();
-    const count = byId('rail-count');
-    if (count) count.textContent = state.visibleTrophies.length + ' shown';
-  },
-  setSpoilerSafe(on) {
-    if (state.settings.spoilerSafe === Boolean(on)) return;
-    state.settings.setSpoilerSafe(on);
-    // keep the header switch in step when the setting is changed from code
-    const toggle = byId('spoiler-toggle');
-    if (toggle) toggle.checked = Boolean(on);
-    renderAll();
-    showToast(on ? 'Spoiler-safe is on: story trophies are masked.' : 'Spoiler-safe is off.', 2400);
-  },
-  peek(id) {
-    state.peeked.add(id);
-    renderGuide();
-  },
-  clearProgress() {
-    state.store.clear();
-    renderAll();
-    showToast('Progress cleared. Export first next time if you wanted a copy.', 3000);
-  },
-  exportProgress() {
-    const result = downloadProgress(state.store, state.data);
-    showToast('Exported ' + state.store.count() + ' earned to ' + result.filename, 3200);
-  },
-  async importProgress(file) {
-    try {
-      const parsed = await readProgressFile(file);
-      const result = applyImportedProgress(parsed, state.data, state.store);
-      renderAll();
-      showToast('Imported ' + result.applied + ' earned' + (result.skipped ? ', ' + result.skipped + ' name(s) not in this list' : '') + '.', 3600);
-    } catch (error) {
-      showToast('Import failed: ' + error.message, 4000);
-    }
-  },
-};
-
-function computeVisible() {
-  state.visibleTrophies = applyFilters(state.data.trophies, state.filters, (id) => state.store.has(id));
-}
-
-function renderList() {
-  computeVisible();
-  const body = byId('list-body');
-  const keepScroll = body ? body.scrollTop : 0;
-  renderTrackerList(byId('tracker-list'), state, actions);
-  const fresh = byId('list-body');
-  if (fresh) fresh.scrollTop = keepScroll;
-}
-
-function renderGuide() {
-  const body = byId('guide-body');
-  const keepScroll = body ? body.scrollTop : 0;
-  renderGuidePanel(byId('guide-pane'), state, actions);
-  const fresh = byId('guide-body');
-  if (fresh) fresh.scrollTop = keepScroll;
-}
-
-/** Scrolls the checklist just enough to show a row the reader asked for. */
-function revealRow(id) {
-  const row = document.querySelector('[data-row-id="' + id + '"]');
-  const body = byId('list-body');
-  if (!row || !body) return;
-  const rowBox = row.getBoundingClientRect();
-  const bodyBox = body.getBoundingClientRect();
-  if (rowBox.top < bodyBox.top || rowBox.bottom > bodyBox.bottom) {
-    row.scrollIntoView({ block: 'center' });
-  }
-}
-
-function renderTracker() {
-  computeVisible();
-  renderFilterRail(byId('filter-rail'), state, actions);
-  renderTrackerList(byId('tracker-list'), state, actions);
-  renderGuidePanel(byId('guide-pane'), state, actions);
-  renderProgressHeader(state);
-}
-
-function renderAll() {
-  computeVisible();
-  renderProgressHeader(state);
-  renderTracker();
-  renderRoadmap(byId('view-roadmap'), state, actions);
-  renderAbout(byId('view-about'), state);
-}
-
-function showView(name) {
-  state.view = name;
-  for (const section of document.querySelectorAll('.view')) {
-    section.hidden = section.id !== 'view-' + name;
-  }
-  for (const tab of document.querySelectorAll('.tab')) {
-    const active = tab.dataset.view === name;
-    tab.classList.toggle('is-active', active);
-    tab.setAttribute('aria-selected', active ? 'true' : 'false');
-  }
-}
-
-function wireHeader() {
-  byId('btn-export').addEventListener('click', () => actions.exportProgress());
-  const input = byId('import-input');
-  byId('btn-import').addEventListener('click', () => input.click());
-  input.addEventListener('change', () => {
-    const file = input.files && input.files[0];
-    if (file) actions.importProgress(file);
-    input.value = '';
-  });
-  const spoiler = byId('spoiler-toggle');
-  spoiler.checked = state.settings.spoilerSafe;
-  spoiler.addEventListener('change', () => actions.setSpoilerSafe(spoiler.checked));
-
-  for (const tab of document.querySelectorAll('.tab')) {
-    tab.addEventListener('click', () => showView(tab.dataset.view));
-  }
-
-  document.addEventListener('keydown', (event) => {
-    if (event.key === '/' && document.activeElement.tagName !== 'INPUT') {
-      const search = byId('filter-search');
-      if (search) {
-        event.preventDefault();
-        search.focus();
-      }
-    }
-  });
-}
-
-function firstSelection() {
-  const firstUnearned = state.data.trophies.find((t) => !state.store.has(t.id));
-  return (firstUnearned || state.data.trophies[0]).id;
-}
 
 async function boot() {
-  state.store = createProgressStore();
-  state.settings = createSettingsStore();
-  state.data = await loadGuideData();
-  state.selectedId = firstSelection();
+  const catalog = await loadCatalog('data');
+  if (catalog.issues.length) console.warn('[leonida] catalogue check:', catalog.issues);
+  console.info(`[leonida] ${catalog.trophies.length} trophies loaded, ${catalog.roadmap.stages.length} roadmap stages`);
 
+  const store = new ProgressStore();
+  const tracker = createTrackerView({ catalog, store, elements });
+  const roadmap = createRoadmapView({
+    catalog,
+    store,
+    elements,
+    onOpenTrophy: (id) => {
+      setView('tracker');
+      tracker.select(id);
+    }
+  });
+  const board = createProgressBoard({ catalog, store, elements });
+
+  tracker.mount();
+  roadmap.render();
+  board.render();
   wireHeader();
-  showView('tracker');
-  renderAll();
+  applyView(store.settings.view || 'tracker');
 
-  // A handle for the checks in tools/: the same state the UI renders from.
-  window.leonidaLedger = { state, actions, renderAll, ready: true };
-  document.documentElement.dataset.ready = 'true';
+  store.subscribe(() => {
+    tracker.refresh();
+    roadmap.render();
+    board.render();
+    syncSpoiler();
+    applyView(store.settings.view || 'tracker');
+  });
+
+  function wireHeader() {
+    for (const tab of elements.tabs) {
+      tab.addEventListener('click', () => {
+        store.setSetting('view', tab.dataset.view);
+      });
+    }
+
+    syncSpoiler();
+    elements.spoiler.addEventListener('change', () => {
+      store.setSetting('spoilerShield', elements.spoiler.checked);
+    });
+
+    elements.exportButton.addEventListener('click', () => {
+      const result = downloadSnapshot(store, catalog);
+      toast(`Exported ${result.count} earned trophies to ${result.filename}`);
+    });
+
+    elements.importButton.addEventListener('click', () => elements.importInput.click());
+    elements.importInput.addEventListener('change', async () => {
+      const file = elements.importInput.files && elements.importInput.files[0];
+      if (!file) return;
+      try {
+        const payload = await readSnapshotFile(file);
+        const result = applyImported(store, payload, catalog);
+        toast(`Imported ${result.applied} trophies${result.skipped ? `, skipped ${result.skipped} unknown` : ''}`);
+      } catch (error) {
+        toast(`Import failed: ${error.message}`, true);
+      } finally {
+        elements.importInput.value = '';
+      }
+    });
+
+    elements.resetButton.addEventListener('click', () => {
+      const count = store.count();
+      if (count === 0) {
+        toast('Nothing to clear: the checklist is already empty.');
+        return;
+      }
+      store.clearProgress();
+      toast(`Cleared ${count} ticks. Settings and filters are unchanged.`);
+    });
+  }
+
+  function syncSpoiler() {
+    elements.spoiler.checked = Boolean(store.settings.spoilerShield);
+    const masked = tracker.maskedCount();
+    elements.spoilerLabel.textContent = store.settings.spoilerShield
+      ? `on — ${masked} story ${masked === 1 ? 'trophy' : 'trophies'} masked`
+      : 'off — story trophies shown';
+  }
+
+  function applyView(view) {
+    const wanted = view === 'roadmap' ? 'roadmap' : 'tracker';
+    elements.trackerView.hidden = wanted !== 'tracker';
+    elements.roadmapView.hidden = wanted !== 'roadmap';
+    for (const tab of elements.tabs) {
+      tab.setAttribute('aria-selected', String(tab.dataset.view === wanted));
+    }
+  }
+
+  // A small window handle so a headless check can drive the same code the
+  // buttons drive: tick, export, import, read the store back.
+  window.__leonida = {
+    catalog,
+    store,
+    tracker,
+    selectTrophy: (id) => {
+      setView('tracker');
+      tracker.select(id);
+    },
+    setView,
+    exportSnapshot: () => downloadSnapshot(store, catalog),
+    importSnapshotText: (text) => applyImported(store, JSON.parse(text), catalog),
+    earnedIds: () => [...store.earned].sort()
+  };
+
+  function setView(view) {
+    store.setSetting('view', view);
+  }
+
+  function toast(message, bad = false) {
+    const node = el('div', { class: `toast${bad ? ' bad' : ''}`, role: 'status', text: message });
+    elements.toastStack.append(node);
+    setTimeout(() => node.remove(), 4200);
+  }
 }
 
 boot().catch((error) => {
-  const main = byId('main');
-  if (main) {
-    main.innerHTML = '';
-    const box = document.createElement('div');
-    box.className = 'empty-state';
-    box.textContent = 'The guide could not start: ' + error.message;
-    main.append(box);
+  console.error('[leonida] boot failed', error);
+  const node = document.getElementById('boot-error');
+  if (node) {
+    node.hidden = false;
+    node.textContent = `The guide could not load its data: ${error.message}. Serve app/ over HTTP rather than opening the file directly.`;
   }
-  console.error(error);
 });

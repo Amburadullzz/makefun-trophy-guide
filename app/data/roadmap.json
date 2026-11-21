@@ -1,175 +1,131 @@
 {
- "stages": [
-  {
-   "id": "chapter1",
-   "order": 1,
-   "short": "Ch.1 window",
-   "title": "Chapter 1: the one window that closes",
-   "when": "Before the Chapter 1 finale",
-   "goal": "Take the balcony meditation before the chapter ends, and sweep Jason's house while you can.",
-   "detail": "Chapter 1 is the only part of the game with a hard point of no return that costs a trophy. One morning after Down to Earth, Lucia says she is going to meditate; follow her onto the balcony and accept. That is one of the 18 meditations the Positive Mental Attitude trophy asks for, and it is never offered again. While the house is still yours, also play the home console and finish Shirley's tasks - neither is a trophy, both are easier now.",
-   "trophies": [
-    28
-   ]
+  "meta": {
+    "platinum": "vice-got-a-price",
+    "difficulty": "4/10 (PowerPyx)",
+    "hours": "about 200",
+    "online": 0,
+    "summary": "One playthrough is enough: free roam, the side strands and the 100% checklist all stay open after the credits. The order below follows the official descriptions — the five chapter trophies, then the six named missions, then the checklist counts, then the strand finales and the one-off oddities.",
+    "sources": [
+      { "name": "GTA Snaps — roadmap, difficulty and the three steps", "url": "https://gtasnaps.com/gta-6-trophy-guide-and-roadmap/" },
+      { "name": "PowerPyx — Trophy Guide & Roadmap", "url": "https://www.powerpyx.com/gta-6-grand-theft-auto-vi-trophy-guide-roadmap/" },
+      { "name": "GTABase — 100% completion checklist", "url": "https://www.gtabase.com/articles/gta-6/gta-6-100-completion-guide-interactive-checklist" }
+    ]
   },
-  {
-   "id": "spine",
-   "order": 2,
-   "short": "Story spine",
-   "title": "The spine: 91 missions across five chapters",
-   "when": "Chapters 1-5",
-   "goal": "Play the campaign straight through; twelve trophies are awarded by the story alone.",
-   "detail": "Nothing in the main story can be missed - no difficulty setting, no gold-medal objectives, no branching mission failure. Three chapter trophies arrive a mission or two late (Paradise Lost in Chapter 2, T**s Ass Drug Money in Chapter 3, Vice City, Baby! in Chapter 4), so do not read the delay as a bug. Missions cannot be replayed and there is no New Game+, so keep a manual save before the Chapter 5 finale if you want the other ending.",
-   "trophies": [
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    13
-   ]
+  "stages": [
+    {
+      "id": "chapter-1",
+      "number": 1,
+      "title": "Chapter 1 — the opening and the one trophy you can lose",
+      "when": "22 main missions",
+      "goal": "Play Gone Fishing through Discharge Time, and take the balcony meditation before the chapter closes.",
+      "why": "Two story trophies sit here, Just Like Paradise on the first mission and Paradise Lost as Chapter 2 opens. The only missable trophy in the list is also here: the balcony meditation at Jason's house exists only in Chapter 1.",
+      "trophies": ["just-like-paradise", "paradise-lost", "positive-mental-attitude"],
+      "counts": ["22 Chapter 1 missions", "1 of 18 meditations is Chapter 1 only"],
+      "caution": "Say yes when Lucia offers to meditate. Shirley's two errands also close when Tourist Trap starts; they carry no trophy, but they are gone for good."
+    },
+    {
+      "id": "chapter-2",
+      "number": 2,
+      "title": "Chapter 2 — partners, garages and side work",
+      "when": "11 main missions",
+      "goal": "Finish the chapter for Trust and T**s Ass Drug Money, and use the unlocks it hands you.",
+      "why": "Chapter 2 is short but it switches on the systems the rest of the list depends on: the partner call after Coffee Break, the Moses garage jobs and Randy's deliveries, Bret's hunting strand, and the Vice City Real Estate app.",
+      "trophies": ["trust", "t-ass-drug-money"],
+      "counts": ["11 Chapter 2 missions", "1 named mission: Breakfast Run"],
+      "caution": "Start Bret's and Billy's strands here if you want them out of the way; both need a chapter 2 main mission first."
+    },
+    {
+      "id": "chapter-3",
+      "number": 3,
+      "title": "Chapter 3 — banks, jewelry and the Key Cloner",
+      "when": "26 main missions",
+      "goal": "Play the biggest chapter for Vice City, Baby! and Break the Bank, and pick up the robbery tools.",
+      "why": "Credit Check adds the Dye Pack Jammer and bank jobs, Yasmani's jewelry jobs open the stores, and Randy's car theft hands over the Key Cloner. Those three items unlock Dime on the Dollar, Sneakthief, Capital Offense and the vault trophies later.",
+      "trophies": ["vice-city-baby", "break-the-bank"],
+      "counts": ["26 Chapter 3 missions", "1 named mission: The Cartel Heist"],
+      "caution": "Blow all three cell towers in Hidden Charges for the full window into the heist."
+    },
+    {
+      "id": "chapter-4",
+      "number": 4,
+      "title": "Chapter 4 — the airport, the vaults and the family",
+      "when": "25 main missions",
+      "goal": "Clear the chapter's story trophies, then start That's Where The Money Is for the vault grind.",
+      "why": "Four trophies land here: Top Of The World, Ma at the chapter's end, plus Family Matters, DWNFALL and Hi-Jacked inside named missions. VCIA Takedown also opens the optional job that makes large bank vaults robbable, which is where Maximum Withdrawal and A Classic Blitz Play come from.",
+      "trophies": ["family-matters", "dwnfall", "hi-jacked", "top-of-the-world-ma", "maximum-withdrawal", "a-classic-blitz-play"],
+      "counts": ["25 Chapter 4 missions", "8 large vaults exist, 5 needed for the trophy"],
+      "caution": "Keep a manual save before the VCIA setup chain; missions cannot be replayed."
+    },
+    {
+      "id": "chapter-5",
+      "number": 5,
+      "title": "Chapter 5 — the finale",
+      "when": "7 main missions",
+      "goal": "Play Operation Savage Glory and the last mission.",
+      "why": "The shortest chapter holds the second gold, You Gotta Know When to Get Off, and Snow Storm. Finishing it does not close anything: the checklist, the strands and every robbery stay open.",
+      "trophies": ["snow-storm", "you-gotta-know-when-to-get-off"],
+      "counts": ["7 Chapter 5 missions", "2 trophies, one of them gold"],
+      "caution": "Save before the finale if you want to see the other endings."
+    },
+    {
+      "id": "completion",
+      "number": 6,
+      "title": "The 100% checklist — where most of the list falls",
+      "when": "about 100 hours",
+      "goal": "Open Progress, Stats, 100% Completion and work it county by county.",
+      "why": "A Long Road is the gold, and the checklist is also the natural home of the count trophies: 250 stunts, 42 range golds, 14 drone stations, 100 WAiNK scans, 3 card sets, 100 vehicles, 50 challenges, 9 gangs and the money and property lines. The checklist asks for more than the trophies do in some lines and less in others, so read the counts column before grinding.",
+      "trophies": ["a-long-road", "cunning-stunts", "the-shootist", "top-fun", "you-wainker", "dont-touch-my-deck", "whip-it-good", "the-goodtime-state", "one-last-thing", "pest-control", "master-of-none", "earn-cash-not-kudos", "dime-on-the-dollar", "treat-yo-self", "little-boxes", "on-the-spot"],
+      "counts": ["300 of 397 stunts for the checklist, 250 for the trophy", "42 of 42 range golds and 42 of 42 drone trials are all-or-nothing", "15 of 18 card sets, 200 of 277 vehicles, 70 of 80 challenges"],
+      "caution": "Scan vehicles and study animals from Chapter 1; both lines finish themselves if you start early."
+    },
+    {
+      "id": "strands",
+      "number": 7,
+      "title": "Stranger strands and character finales",
+      "when": "about 10 hours",
+      "goal": "Finish eight stranger strands, then the six character finales and the fishing and arcade jobs.",
+      "why": "Strangers & Freaks wants eight completed strands, and the checklist ignores strands entirely, so this is the step the 100% run does not cover. Andy is Lucia's, Tyrone and Bret are Jason's, and Billy, Randy and Kenton sit in between; a strand that never appears usually means the wrong character.",
+      "trophies": ["strangers-freaks", "road-to-rehabilitation", "this-was-no-boat-accident", "the-lone-rider", "supply-demand", "spin-on-this", "fair-game", "baited-my-tackle", "stick-fiddler"],
+      "counts": ["8 strands", "7 Kenton treasure sets", "16 Randy wish-list cars", "15 Bret target decks"],
+      "caution": "Race Against Yago runs on an hourglass. Start it the moment it appears."
+    },
+    {
+      "id": "oddities",
+      "number": 8,
+      "title": "The one-off oddities",
+      "when": "1 to 3 hours",
+      "goal": "Mop up the hidden one-offs: the showroom, the airport, the tank, the UFO, the bowling job and the combat tests.",
+      "why": "These are single events with cryptic official descriptions, so they need a trip each rather than a grind. Most need a story unlock first: the Key Cloner for the showroom, Chapter 3 for payday loans, That's Where The Money Is for the armoured truck, and a partner for the two co-op robberies.",
+      "trophies": ["capital-offense", "catch-me-if-you-can", "challenging-tank", "the-truth-is-out-there", "lets-go-bowling", "ten-pin", "in-the-beginning", "bad-luck-i-guess", "gunslinger", "sneakthief", "retail-therapy", "hot-together", "personal-best", "actions-speak-louder"],
+      "counts": ["1 UFO, after 2:00 AM in Kelly County", "5 kills in one Combat Focus", "500 profile actions"],
+      "caution": "Do the stealth and escape trophies before the Criminal Profile climbs to Psycho, where police shoot sooner."
+    },
+    {
+      "id": "platinum",
+      "number": 9,
+      "title": "The platinum",
+      "when": "the last minute",
+      "goal": "Let Vice Got a Price! fire once the other 54 are on the account.",
+      "why": "No online, no DLC, no second playthrough: the platinum is a receipt for the other 54, and free roam keeps everything reachable after the credits.",
+      "trophies": ["vice-got-a-price"],
+      "counts": ["54 trophies before it", "1 platinum"],
+      "caution": "Cheats switch off trophies and saving for the session; keep them out of this save."
+    }
+  ],
+  "missableBrief": {
+    "headline": "One trophy can be lost, and it is lost early",
+    "body": "Positive Mental Attitude needs a meditation at every spot, and the first spot is Jason's balcony in Chapter 1. It is the only trophy in the list with a deadline. Guides agree on the cutoff and still argue about whether the balcony session is strictly required for the trophy, which is exactly why it should be taken: it costs two minutes and cannot be recovered later.",
+    "trophy": "positive-mental-attitude",
+    "sources": [
+      { "name": "GTA6 Pocket — the balcony meditation and its cutoff", "url": "https://gta6pocket.com/en/missables/" },
+      { "name": "Bloxodes — one trophy can be missed for good", "url": "https://bloxodes.com/articles/gta-6-missable-trophies-and-missions" }
+    ]
   },
-  {
-   "id": "strands",
-   "order": 3,
-   "short": "Strands",
-   "title": "Side strands and the partner jobs",
-   "when": "Chapter 2 onwards, finishing after the credits",
-   "goal": "Run the seven character strands and the two-partner robberies; one strand can be lost to a timer.",
-   "detail": "Strangers & Freaks counts eight strands and not every strand counts, so read the trophy counter before and after each strand's final mission. The one timed risk is Race Against Yago in Chapter 3: start it the moment the hourglass appears. The rest - Andy, Kenton, Billy, Randy, Tyrone, Bret and Cal - survive the credits. Partner trophies need the two protagonists roaming together, which opens with Coffee Break in Chapter 2.",
-   "trophies": [
-    20,
-    22,
-    23,
-    24,
-    25,
-    26,
-    27,
-    29,
-    33,
-    34,
-    39
-   ]
-  },
-  {
-   "id": "money",
-   "order": 4,
-   "short": "Money",
-   "title": "Money: launder it, spend it, buy the garages",
-   "when": "Chapter 3 onwards, once the Dye Pack Jammer and the estate app are yours",
-   "goal": "Turn robberies into the four economy trophies without grinding.",
-   "detail": "The vault jobs are the engine: up to $205,000 a robbery, which covers Little Boxes ($160,000 for eight garages) and Treat Yo Self ($100,000 of shopping) in a handful of evenings. Fence the marked bills to Yasmani for Dime on the Dollar, and buy the garages before chasing On the Spot, because every registration needs a parking spot.",
-   "trophies": [
-    52,
-    53,
-    54,
-    55
-   ]
-  },
-  {
-   "id": "activities",
-   "order": 5,
-   "short": "Open world",
-   "title": "Open-world activities, robberies and one-off stunts",
-   "when": "Any time; most open with story progress",
-   "goal": "Clear the activity trophies, starting with the ones whose maps you can unfog.",
-   "detail": "This is the widest group: stunts, races, drone trials, shooting ranges, arcade games, gang operations, vaults, challenges and a handful of one-off stunts like the airliner at VCIA and the tank at Mile Zero. None of it is missable, and most of it overlaps with the 100% checklist - 250 stunts against 300 wanted, 50 challenges against 70, 20 race wins against 30.",
-   "trophies": [
-    15,
-    16,
-    17,
-    18,
-    19,
-    21,
-    32,
-    36,
-    37,
-    38,
-    40,
-    41,
-    43,
-    44,
-    45,
-    46,
-    47,
-    48,
-    49,
-    50,
-    51
-   ]
-  },
-  {
-   "id": "collections",
-   "order": 6,
-   "short": "Collections",
-   "title": "Collections and exploration",
-   "when": "Start scanning in Chapter 1, finish after the credits",
-   "goal": "Three card sets, 100 WAiNK scans, 100 vehicles and an unfogged map.",
-   "detail": "These are the four trophies that reward doing a little all the way through: scan every new vehicle you pass, scan landmarks as you drive, and pick cards up as you see them. The map unfogs by flying, and unfogging is what puts the robbery targets on it - so the exploration trophy pays for itself twice.",
-   "trophies": [
-    30,
-    31,
-    35,
-    42
-   ]
-  },
-  {
-   "id": "platinum",
-   "order": 7,
-   "short": "Platinum run",
-   "title": "100% completion, then the platinum",
-   "when": "After the credits",
-   "goal": "Close the 100% checklist for A Long Road; Vice Got a Price! follows automatically.",
-   "detail": "The checklist only appears after the credits, under Progress > Stats > 100% Completion, and everything done before then already counts. It is partial by design: 70 of 80 challenges, 200 of 277 vehicles, 100 of 255 animals, 50 of 66 weapons, 300 of 397 stunts, 100 optional tasks, but all 39 gang operations, all 8 vaults, every video game and every shooting-range gold.",
-   "trophies": [
-    14,
-    1
-   ]
-  }
- ],
- "pointsOfNoReturn": [
-  {
-   "deadline": "End of Chapter 1",
-   "costs": "Lucia's balcony meditation",
-   "detail": "One of the 18 meditations for Positive Mental Attitude, offered once, on the balcony of Jason's house. After Chapter 2 starts it is gone."
-  },
-  {
-   "deadline": "Tourist Trap (late Chapter 1)",
-   "costs": "Jason's house and the cash in your pocket",
-   "detail": "The mission ends the house; bank what you are carrying first. Nothing here is a trophy, but the home console and the house collectibles go with it."
-  },
-  {
-   "deadline": "Checking Out (Chapter 2 finale)",
-   "costs": "The Starlet Motel safehouse",
-   "detail": "Use it before the mission if you rely on it for outfits, storage or saves."
-  },
-  {
-   "deadline": "Race Against Yago (Chapter 3)",
-   "costs": "Yago's strand, and possibly Strangers & Freaks",
-   "detail": "An hourglass mission: it fails if you leave it. Start it as soon as it appears."
-  },
-  {
-   "deadline": "The final mission (Chapter 5)",
-   "costs": "Nothing trophy-wise, but the other ending",
-   "detail": "Missions cannot be replayed and there is no New Game+. Keep a manual save before the finale."
-  }
- ],
- "notes": {
-  "missions": 91,
-  "chapters": 5,
-  "chapterMissionCounts": {
-   "1": 22,
-   "2": 11,
-   "3": 26,
-   "4": 25,
-   "5": 7
-  },
-  "timeToPlatinum": "about 200 hours (PowerPyx), 4/10 difficulty"
- }
+  "sideDeadlines": [
+    { "what": "Balcony meditation at Jason's house", "closes": "End of Chapter 1", "cost": "Positive Mental Attitude", "source": "GTA6 Pocket" },
+    { "what": "Get Shirley's Rum", "closes": "Start of Tourist Trap", "cost": "No trophy", "source": "Bloxodes" },
+    { "what": "Steal the Scooter", "closes": "Start of Tourist Trap", "cost": "No trophy", "source": "Bloxodes" },
+    { "what": "Race Against Yago", "closes": "Timed, hourglass on the map", "cost": "Can put Strangers & Freaks at risk", "source": "Bloxodes" },
+    { "what": "This is a Free Call From (Lucia)", "closes": "Timed, hourglass on the map", "cost": "No trophy", "source": "GTA6 Pocket" }
+  ]
 }
